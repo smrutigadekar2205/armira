@@ -16,4 +16,6 @@ server.log
 server.pid
 web/static/results/*
 web/static/uploads/*
+web/static/assets/*
+web/static/js/*
 web/node_modules/*

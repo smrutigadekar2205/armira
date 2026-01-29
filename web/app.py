@@ -349,6 +349,11 @@ def studio():
                            current_garment=current_garment,
                            all_garments=all_garments)
 
+@app.route('/studio2')
+def studio2():
+    """AR Studio 2 - Real-time AR effects using Snap Camera Kit"""
+    return render_template('studio2.html')
+
 @app.route('/api_virtual_try_on', methods=['POST'])
 def api_virtual_try_on():
     """Virtual try-on using API4AI API"""
