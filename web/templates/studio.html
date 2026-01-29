@@ -153,7 +153,8 @@
                 {% for g in all_garments %}
                 <div class="garment-thumb group {% if g.filename == current_garment.filename %}active{% endif %}" 
                      data-category="{{ g.category }}"
-                     onclick="switchGarment(this, {{ g | tojson }})">
+                     data-garment='{{ g | tojson }}'
+                     onclick="switchGarment(this)">
                     <div class="aspect-[3/4] rounded-2xl overflow-hidden bg-slate-800 relative">
                         <img src="{{ url_for('static', filename='uploads/garments/' + g.filename) }}" 
                              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -207,7 +208,10 @@
             }
         }
 
-        function switchGarment(el, data) {
+        function switchGarment(el) {
+            // Get garment data from data attribute
+            const data = JSON.parse(el.dataset.garment);
+
             // Update UI
             document.querySelectorAll('.garment-thumb').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
