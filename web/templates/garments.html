@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Style - ARmira</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Overrides -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            border: 2px solid #e2e8f0;
+            color: #64748b;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-btn.active {
+            border-color: #6366f1;
+            background: #6366f1;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .loader-dots {
+            display: flex;
+            gap: 0.25rem;
+            justify-content: center;
+        }
+
+        .loader-dots div {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: white;
+            border-radius: 50%;
+            animation: bounce 0.6s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-4px); }
+        }
+
+        .loader-dots div:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dots div:nth-child(3) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body class="hero-gradient min-h-screen">
+    <!-- Navbar -->
+    <nav class="navbar-modern">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <div class="navbar-logo">
+                <i data-lucide="shirt" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
+        </a>
+        
+        <div class="navbar-links">
+            <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
+            <a href="{{ url_for('about') }}" class="navbar-link">About</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link active">Studio</a>
+        </div>
+
+        <div class="ml-auto flex items-center gap-4 text-slate-500">
+            <div class="flex flex-col items-end mr-2">
+                <span class="text-[10px] font-bold uppercase tracking-widest">Active Model</span>
+                <span class="text-xs text-indigo-400 font-bold">ResNet-50-Warp</span>
+            </div>
+            <div class="w-10 h-10 rounded-full border-2 border-white/10 shadow-sm overflow-hidden bg-slate-800">
+                <img src="{{ url_for('static', filename='uploads/users/' + user_image) }}" class="w-full h-full object-cover">
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <!-- User Measurements Header -->
+            <div class="card-modern mb-10 overflow-hidden relative">
+                <div class="absolute top-0 right-0 p-8 opacity-5">
+                    <i data-lucide="ruler" class="w-32 h-32"></i>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-extrabold uppercase rounded-full">Analysis Complete</span>
+                            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Your Digital Twin</h2>
+                        </div>
+                        <p class="text-slate-500">We've calculated your proportions. Choose a garment to see the magic.</p>
+                    </div>
+                    
+                    <div class="flex gap-4 md:gap-10">
+                        <div class="text-center">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Fit Profile</span>
+                            <span class="text-2xl font-black text-indigo-600">{{ size_category }}</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Chest</span>
+                            <span class="text-xl font-bold text-slate-700">{{ measurements.chest_cm|round(1) }}<span class="text-xs font-normal text-slate-400 ml-0.5">cm</span></span>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Waist</span>
+                            <span class="text-xl font-bold text-slate-700">{{ measurements.waist_cm|round(1) }}<span class="text-xs font-normal text-slate-400 ml-0.5">cm</span></span>
+                        </div>
+                        <a href="{{ url_for('demo') }}" class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <form action="{{ url_for('try_on') }}" method="post" onsubmit="showLoader()">
+                <input type="hidden" name="user_image" value="{{ user_image }}">
+                
+                <div class="flex flex-col md:flex-row justify-between items-end md:items-center gap-6 mb-10">
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Filter Collection</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="filterGarments('all')" class="filter-btn active" id="f-all">All</button>
+                            <button type="button" onclick="filterGarments('Tops')" class="filter-btn" id="f-tops">Tops</button>
+                            <button type="button" onclick="filterGarments('Bottoms')" class="filter-btn" id="f-bottoms">Bottoms</button>
+                            <button type="button" onclick="filterGarments('Dresses')" class="filter-btn" id="f-dresses">Dresses</button>
+                            <button type="button" onclick="filterGarments('Outerwear')" class="filter-btn" id="f-outerwear">Outerwear</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">Global Sizing</span>
+                        <div class="flex gap-1">
+                            {% for size in ['S', 'M', 'L', 'XL', 'All'] %}
+                                <a href="{{ url_for('select_garments', size=size) }}" 
+                                   class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all
+                                   {% if size_category == size %} bg-indigo-600 text-white shadow-lg shadow-indigo-200 {% else %} text-slate-400 hover:text-slate-900 hover:bg-slate-50 {% endif %}">
+                                    {{ size }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {% for garment in garments %}
+                    <label class="garment-card group" data-category="{{ garment.category }}">
+                        <input type="radio" name="garment_image" value="{{ garment.filename }}" class="absolute opacity-0" required>
+                        <div class="aspect-[3/4] overflow-hidden">
+                            <img src="{{ url_for('static', filename='uploads/garments/' + garment.filename) }}" 
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                 onerror="this.style.display='none'; this.parentElement.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-slate-200 text-slate-400\'><i data-lucide=\'image\' class=\'w-8 h-8\'></i></div>'">
+                        </div>
+                        <div class="absolute top-4 right-4 z-10 scale-0 group-has-checked:scale-100 transition-transform">
+                            <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-lg ring-4 ring-white">
+                                <i data-lucide="check" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-6 pt-10 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent">
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase text-indigo-400 tracking-widest">{{ garment.category }}</span>
+                                    <h4 class="text-white font-bold text-lg leading-tight mt-1">{{ garment.category }}</h4>
+                                </div>
+                                <span class="px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg text-white text-[10px] font-black">{{ garment.size }}</span>
+                            </div>
+                        </div>
+                    </label>
+                    {% else %}
+                    <div class="col-span-full py-20 text-center">
+                        <div class="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-300">
+                            <i data-lucide="shopping-bag" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900">No items match your profile</h3>
+                        <p class="text-slate-500 mt-2">Try changing the size filter or <a href="{{ url_for('demo') }}" class="text-indigo-600 font-bold underline">uploading</a> more garments.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Footer Action -->
+                <div class="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
+                    <button type="submit" id="submit-btn" class="btn-modern btn-primary text-xl px-12 py-4 rounded-3xl shadow-2xl shadow-indigo-500/50 {% if not garments %} opacity-50 cursor-not-allowed {% endif %}" {% if not garments %}disabled{% endif %}>
+                        Apply to My Body
+                        <i data-lucide="wand-2"></i>
+                    </button>
+
+                    <div id="loader" class="hidden glass-morphism px-8 py-4 rounded-3xl shadow-2xl flex flex-col items-center">
+                        <div class="flex items-center gap-4 mb-2">
+                            <div class="loader-dots"><div></div><div></div><div></div></div>
+                            <span id="loader-text" class="text-sm font-bold text-indigo-600">Generating AI Render...</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Custom Scripts for Dynamic Experience -->
+    <script>
+        // Form redirect to Studio
+        document.querySelector('form[action="{{ url_for('try_on') }}"]').onsubmit = function(e) {
+            e.preventDefault();
+            const selectedGarment = document.querySelector('input[name="garment_image"]:checked');
+            if(!selectedGarment) {
+                alert("Please select a garment first!");
+                return;
+            }
+            
+            showLoader();
+            
+            // Redirect to studio after simulated loading
+            setTimeout(() => {
+                window.location.href = `{{ url_for('studio') }}?garment_image=${selectedGarment.value}`;
+            }, 3000);
+        };
+        // Tab switching logic for categories
+        function filterGarments(category) {
+            const cards = document.querySelectorAll('.garment-card');
+            const btns = document.querySelectorAll('.filter-btn');
+            
+            btns.forEach(btn => {
+                if(btn.id === `f-${category.toLowerCase()}`) {
+                    btn.classList.add('active', 'ring-4', 'ring-indigo-100');
+                } else {
+                    btn.classList.remove('active', 'ring-4', 'ring-indigo-100');
+                }
+            });
+
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                    card.classList.add('animate-in', 'fade-in', 'zoom-in', 'duration-300');
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Real-time selection feedback
+        document.querySelectorAll('input[name="garment_image"]').forEach(input => {
+            input.addEventListener('change', function() {
+                // Remove selected state from all labels
+                document.querySelectorAll('.garment-card').forEach(c => {
+                    c.classList.remove('selected', 'border-indigo-600', 'ring-4', 'ring-indigo-100', '-translate-y-2');
+                });
+                // Add to current selected label
+                if(this.checked) {
+                    const card = this.closest('.garment-card');
+                    card.classList.add('selected', 'border-indigo-600', 'ring-4', 'ring-indigo-100', '-translate-y-2');
+                }
+            });
+        });
+
+        function showLoader() {
+            const btn = document.getElementById('submit-btn');
+            const loader = document.getElementById('loader');
+            
+            btn.classList.add('scale-0', 'opacity-0');
+            setTimeout(() => {
+                btn.classList.add('hidden');
+                loader.classList.remove('hidden');
+                loader.classList.add('animate-in', 'slide-in-from-bottom-10', 'fade-in', 'duration-500');
+            }, 300);
+            
+            const messages = [
+                "Extracting segmentation masks...",
+                "Calculating fabric deformation...",
+                "Optimizing pixel flow...",
+                "Blending neural textures...",
+                "Final composite rendering..."
+            ];
+            let i = 0;
+            const textEl = document.getElementById('loader-text');
+            
+            const interval = setInterval(() => {
+                i++;
+                if(i >= messages.length) {
+                    clearInterval(interval);
+                    return;
+                }
+                textEl.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                    textEl.innerText = messages[i];
+                    textEl.classList.remove('opacity-0', '-translate-y-2');
+                }, 200);
+            }, 800);
+        }
+    </script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

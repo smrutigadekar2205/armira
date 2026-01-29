@@ -11,3 +11,7 @@ result/*
 .idea/*
 *.pyc
 *.zip
+.env
+server.log
+server.pid
+web/static/uploads/*

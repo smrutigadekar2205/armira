@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Virtual Try-On - Welcome</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Framer Motion (via CDN for simple animations) -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <!-- Custom Style Overrides -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .nav-link.active::after {
+            content: '';
+            @apply absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-full;
+        }
+    </style>
+</head>
+<body class="hero-gradient min-h-screen">
+    <!-- Navbar -->
+    <nav class="navbar-modern">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <div class="navbar-logo">
+                <i data-lucide="shirt" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
+        </a>
+        
+        <div class="navbar-links">
+            <a href="{{ url_for('index') }}" class="navbar-link active">Home</a>
+            <a href="{{ url_for('about') }}" class="navbar-link">About</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
+        </div>
+
+        <div class="ml-auto flex items-center gap-4">
+            <div class="hidden md:block">
+                <a href="{{ url_for('demo') }}" class="btn-modern btn-primary text-sm px-8 py-2.5">
+                    Launch Studio
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400">
+                <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32">
+        <section class="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="text-left">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-sm font-semibold mb-8">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                    </span>
+                    The Future of Retail is Here
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 leading-tight">
+                    Experience Your Wardrobe <br/>
+                    <span class="gradient-text">In Augmented Reality</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl text-slate-600 mb-12 max-w-2xl leading-relaxed">
+                    Step into the future with our AI-powered virtual dressing room. 
+                    Get precise measurements and see how any garment fits you instantly.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-6 mb-16">
+                    <a href="{{ url_for('demo') }}" class="btn-modern btn-primary text-xl px-12 py-5">
+                        Open Virtual Studio
+                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    </a>
+                    <a href="{{ url_for('about') }}" class="btn-modern bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 text-xl px-12 py-5 shadow-sm">
+                        Technology Stack
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-6 p-4 glass-morphism rounded-2xl border-white max-w-sm">
+                    <div class="flex -space-x-3">
+                        <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-200"></div>
+                        <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-300"></div>
+                        <div class="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-600">Joined by 10k+ <span class="text-indigo-600">early adopters</span></p>
+                </div>
+            </div>
+
+            <div class="relative hidden lg:block">
+                <div class="absolute -top-20 -right-20 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 grid grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <div class="card-modern p-4 floating-garment" style="animation-delay: 0s;">
+                            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=800" class="rounded-2xl w-full h-48 object-cover">
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Classic Tee</span>
+                                <span class="px-2 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded">M</span>
+                            </div>
+                        </div>
+                        <div class="card-modern p-4 floating-garment" style="animation-delay: 0.5s;">
+                            <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=800" class="rounded-2xl w-full h-64 object-cover">
+                            <div class="mt-4">
+                                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Denim Jacket</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6 pt-12">
+                        <div class="card-modern p-4 floating-garment" style="animation-delay: 0.2s;">
+                            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800" class="rounded-2xl w-full h-64 object-cover">
+                            <div class="mt-4">
+                                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Summer Dress</span>
+                            </div>
+                        </div>
+                        <div class="card-modern p-4 floating-garment" style="animation-delay: 0.7s;">
+                            <img src="https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=800" class="rounded-2xl w-full h-48 object-cover">
+                            <div class="mt-4">
+                                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Slim Jeans</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white py-32 overflow-hidden">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="flex flex-col md:flex-row gap-20 items-center">
+                    <div class="flex-1">
+                        <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-8 leading-tight">
+                            The Science of <br/>
+                            <span class="gradient-text">Virtual Fitting</span>
+                        </h2>
+                        <div class="space-y-8">
+                            <div class="flex gap-6">
+                                <div class="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0">
+                                    <i data-lucide="scan" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">Neural Body Capture</h3>
+                                    <p class="text-slate-600 leading-relaxed">Our computer vision model extracts over 500 body landmarks to reconstruct your 3D geometry with millimeter precision.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6">
+                                <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center text-white shrink-0">
+                                    <i data-lucide="wind" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">Physics-Based Draping</h3>
+                                    <p class="text-slate-600 leading-relaxed">We simulate real-world material properties. Silk flows, denim holds, and cotton breathes exactly as they do in real life.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6">
+                                <div class="w-12 h-12 bg-pink-600 rounded-xl flex items-center justify-center text-white shrink-0">
+                                    <i data-lucide="zap" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">Instant Visualization</h3>
+                                    <p class="text-slate-600 leading-relaxed">No more waiting. Our edge-computing architecture renders your virtual try-on in under 3 seconds.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 relative">
+                        <div class="card-modern p-2 bg-slate-900 overflow-hidden group">
+                            <div class="aspect-[4/5] bg-slate-800 rounded-2xl relative overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2070" class="w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-1000">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:scale-110 transition-transform">
+                                        <i data-lucide="play" class="w-8 h-8 text-indigo-600 fill-indigo-600 ml-1"></i>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-8 left-8 right-8 p-4 glass-morphism rounded-2xl border-white/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                                            <i data-lucide="user"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-white text-xs font-bold uppercase tracking-widest">Live Preview</p>
+                                            <p class="text-indigo-200 text-[10px]">Real-time pose estimation active</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-32 bg-slate-900 text-white">
+            <div class="max-w-7xl mx-auto px-6 text-center">
+                <h2 class="text-4xl md:text-6xl font-extrabold mb-8">Ready to transform your <br/><span class="text-indigo-400">shopping experience?</span></h2>
+                <p class="text-slate-400 text-xl max-w-2xl mx-auto mb-12">Join the revolution and eliminate the uncertainty of online fashion. Your perfect fit is just one photo away.</p>
+                <a href="{{ url_for('demo') }}" class="btn-modern btn-primary text-xl px-12 py-5 inline-flex">
+                    Launch Virtual Studio
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-50 border-t border-slate-200 py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-10">
+                <a href="{{ url_for('index') }}" class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i data-lucide="shirt" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">AR<span class="text-indigo-600">mira</span></span>
+                </a>
+                
+                <div class="flex gap-10">
+                    <a href="{{ url_for('index') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Home</a>
+                    <a href="{{ url_for('about') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">About</a>
+                    <a href="{{ url_for('demo') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Demo</a>
+                </div>
+
+                <p class="text-slate-500 text-sm">&copy; 2026 ARmira. Engineered for the future of fashion.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
