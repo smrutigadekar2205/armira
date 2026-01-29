@@ -5,7 +5,8 @@ import base64
 import json
 import time
 import numpy as np
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+import requests
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.utils import secure_filename
 
 # Add parent directory to path to import size_estimator
@@ -23,6 +24,10 @@ USER_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'users')
 GARMENT_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'garments')
 RESULTS_FOLDER = os.path.join(BASE_DIR, 'web', 'static', 'results')
 DATA_ROOT = os.path.join(BASE_DIR, 'data')
+
+# API4AI Configuration
+API4AI_API_KEY = os.environ.get('API4AI_API_KEY', 'a4a-J9xM0FVgstpmGHyj9xy7egW1T71GIsid')
+API4AI_URL = 'https://api4ai.cloud/virtual-try-on/v1/results'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -321,6 +326,82 @@ def studio():
     return render_template('studio.html',
                            current_garment=current_garment,
                            all_garments=all_garments)
+
+@app.route('/api_virtual_try_on', methods=['POST'])
+def api_virtual_try_on():
+    """Virtual try-on using API4AI API"""
+    user_image_name = request.form.get('user_image')
+    garment_image_name = request.form.get('garment_image')
+    
+    if not user_image_name or not garment_image_name:
+        return jsonify({'error': 'Missing user_image or garment_image'}), 400
+    
+    # Get file paths
+    user_path = os.path.join(USER_UPLOAD_FOLDER, user_image_name)
+    garment_path = os.path.join(GARMENT_UPLOAD_FOLDER, garment_image_name)
+    
+    if not os.path.exists(user_path) or not os.path.exists(garment_path):
+        return jsonify({'error': 'Image files not found'}), 404
+    
+    try:
+        # Prepare files for API4AI
+        files = {
+            'image': open(user_path, 'rb'),
+            'image-apparel': open(garment_path, 'rb')
+        }
+        
+        headers = {
+            'X-API-KEY': API4AI_API_KEY
+        }
+        
+        # Call API4AI
+        response = requests.post(API4AI_URL, headers=headers, files=files)
+        
+        # Close files
+        files['image'].close()
+        files['image-apparel'].close()
+        
+        if response.status_code != 200:
+            return jsonify({'error': f'API error: {response.status_code}', 'details': response.text}), 500
+        
+        # Parse response
+        result = response.json()
+        
+        if 'results' not in result or len(result['results']) == 0:
+            return jsonify({'error': 'No results returned from API'}), 500
+        
+        # Extract the base64 image
+        result_data = result['results'][0]
+        entities = result_data.get('entities', [])
+        
+        person_in_apparel = None
+        for entity in entities:
+            if entity.get('kind') == 'image' and entity.get('name') == 'person-in-apparel':
+                person_in_apparel = entity
+                break
+        
+        if not person_in_apparel:
+            return jsonify({'error': 'No person-in-apparel result found'}), 500
+        
+        # Decode base64 image
+        image_data = base64.b64decode(person_in_apparel['image'])
+        
+        # Save result
+        result_filename = f"api_result_{int(time.time())}_{user_image_name}"
+        result_path = os.path.join(RESULTS_FOLDER, result_filename)
+        
+        with open(result_path, 'wb') as f:
+            f.write(image_data)
+        
+        return jsonify({
+            'success': True,
+            'result_image': result_filename,
+            'width': result_data.get('width'),
+            'height': result_data.get('height')
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Processing error: {str(e)}'}), 500
 
 @app.route('/try_on', methods=['POST'])
 def try_on():
