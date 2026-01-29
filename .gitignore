@@ -14,4 +14,6 @@ result/*
 .env
 server.log
 server.pid
+web/static/results/*
 web/static/uploads/*
+web/node_modules/*

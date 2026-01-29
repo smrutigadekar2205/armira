@@ -8,6 +8,10 @@ import numpy as np
 import requests
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Add parent directory to path to import size_estimator
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -153,6 +157,24 @@ def upload_user():
     session['size_category'] = size_category
     
     return redirect(url_for('select_garments'))
+
+@app.route('/upload_user_for_tryon', methods=['POST'])
+def upload_user_for_tryon():
+    """Simple upload for virtual try-on - returns JSON with filename"""
+    filename = None
+    
+    # Handle File Upload (from blob)
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename != '' and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(USER_UPLOAD_FOLDER, filename)
+            file.save(filepath)
+    
+    if not filename:
+        return jsonify({'error': 'No image provided'}), 400
+    
+    return jsonify({'success': True, 'filename': filename})
 
 @app.route('/garments')
 def select_garments():
@@ -360,6 +382,11 @@ def api_virtual_try_on():
         # Close files
         files['image'].close()
         files['image-apparel'].close()
+        
+        # Debug: log response
+        print(f"API4AI Response Status: {response.status_code}")
+        print(f"API4AI Response Headers: {response.headers.get('content-type')}")
+        print(f"API4AI Response (first 500 chars): {response.text[:500]}")
         
         if response.status_code != 200:
             return jsonify({'error': f'API error: {response.status_code}', 'details': response.text}), 500
