@@ -296,13 +296,19 @@ def studio():
         return redirect(url_for('select_garments'))
 
     metadata = load_garment_metadata()
-    current_garment = metadata.get(garment_filename, {
-        'category': 'Unknown',
-        'price': '$49.00',
-        'material': 'Premium Blend',
-        'size': 'M'
-    })
+    
+    # Get current garment info
+    current_garment = metadata.get(garment_filename, {})
     current_garment['filename'] = garment_filename
+    
+    # If current garment doesn't have price/material (old dummy), use first real garment instead
+    if 'price' not in current_garment or 'material' not in current_garment:
+        for f, info in metadata.items():
+            if 'price' in info and 'material' in info:
+                current_garment = info.copy()
+                current_garment['filename'] = f
+                garment_filename = f
+                break
 
     # Get all garments for the switcher (only those with price and material)
     all_garments = []
