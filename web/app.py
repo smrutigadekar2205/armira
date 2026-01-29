@@ -4,6 +4,7 @@ import cv2
 import base64
 import json
 import time
+import shutil
 import numpy as np
 import requests
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
@@ -40,6 +41,32 @@ os.makedirs(USER_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(GARMENT_UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
+# Default garments folder
+DEFAULT_GARMENTS_FOLDER = os.path.join(BASE_DIR, 'web', 'static', 'garments_default')
+DEFAULT_GARMENTS_METADATA = os.path.join(DEFAULT_GARMENTS_FOLDER, 'metadata.json')
+GARMENT_METADATA_FILE = os.path.join(GARMENT_UPLOAD_FOLDER, 'metadata.json')
+
+# Initialize default garments if they don't exist in uploads
+def initialize_default_garments():
+    """Copy default garments to uploads folder if not already present"""
+    if not os.path.exists(GARMENT_METADATA_FILE) or os.path.getsize(GARMENT_METADATA_FILE) == 0:
+        if os.path.exists(DEFAULT_GARMENTS_METADATA):
+            # Copy metadata
+            with open(DEFAULT_GARMENTS_METADATA, 'r') as f:
+                metadata = json.load(f)
+            save_garment_metadata(metadata)
+            
+            # Copy images
+            for filename in metadata.keys():
+                src = os.path.join(DEFAULT_GARMENTS_FOLDER, filename)
+                dst = os.path.join(GARMENT_UPLOAD_FOLDER, filename)
+                if os.path.exists(src) and not os.path.exists(dst):
+                    shutil.copy2(src, dst)
+            print(f"Initialized {len(metadata)} default garments")
+
+# Run initialization on startup
+initialize_default_garments()
+
 # Allowed extensions
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
@@ -57,8 +84,6 @@ def about():
 @app.route('/demo')
 def demo():
     return render_template('demo.html')
-
-GARMENT_METADATA_FILE = os.path.join(GARMENT_UPLOAD_FOLDER, 'metadata.json')
 
 def load_garment_metadata():
     if os.path.exists(GARMENT_METADATA_FILE):
