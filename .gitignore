@@ -16,6 +16,6 @@ server.log
 server.pid
 web/static/results/*
 web/static/uploads/*
-web/static/assets/*
-web/static/js/*
+# web/static/assets/*  # Commented out to allow Snap Camera Kit module
+# web/static/js/*  # Commented out to allow Snap Camera Kit module
 web/node_modules/*
