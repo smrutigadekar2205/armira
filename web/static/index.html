@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snap Camera Kit Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .control-group select {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .control-group select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-group select:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .canvas-container {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+        }
+
+        #canvas-output {
+            max-width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+        }
+    </style>
+  <script type="module" crossorigin src="/assets/index-BoeL44aD.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Snap Camera Kit Demo</h1>
+            <p>Experience augmented reality lenses in your browser</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="source-select">📹 Camera Source</label>
+                <select id="source-select">
+                    <option value="">Loading cameras...</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="lens-select">✨ Select Lens</label>
+                <select id="lens-select">
+                    <option value="">Loading lenses...</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <div class="canvas-wrapper">
+                <div id="canvas-output"></div>
+            </div>
+        </div>
+
+        <div class="info">
+            <p>💡 Configure your <code>JSON_WEB_TOKEN</code> and <code>DEFAULT_GROUP_KEY</code> in <code>src/config.ts</code> to get started.</p>
+        </div>
+    </div>
+
+</body>
+</html>
