@@ -64,9 +64,7 @@
     <!-- Navbar -->
     <nav class="navbar-modern">
         <a href="{{ url_for('index') }}" class="navbar-brand">
-            <div class="navbar-logo">
-                <i data-lucide="shirt" class="w-6 h-6"></i>
-            </div>
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
             <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
         </a>
         
@@ -74,6 +72,12 @@
             <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
             <a href="{{ url_for('about') }}" class="navbar-link">About</a>
             <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
+            <a href="{{ url_for('studio2') }}" class="navbar-link">Studio 2 (AR)</a>
+            {% if studio3_visible %}
+            <a href="{{ url_for('studio3') }}" class="navbar-link active">Studio 3 (AI)</a>
+            {% endif %}
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link">Settings</a>
         </div>
 
         <div class="ml-auto flex items-center gap-4">
@@ -121,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- Prompt Input -->
+            <!-- Prompt Input Section -->
             <div id="prompt-section">
                 <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
                     <span id="prompt-label">Style Prompt</span>
@@ -130,16 +134,76 @@
                     <textarea id="prompt-input" 
                               class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
                               rows="3"
-                              placeholder="Enter your prompt...">Anime style</textarea>
+                              placeholder="Enter your prompt...">Elegant evening wear</textarea>
+                    
+                    <!-- Prompt Options -->
+                    <div class="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase">Prompt Options</h4>
+                        
+                        <!-- Intensity Slider -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Style Intensity</label>
+                                <span id="intensity-value" class="text-xs text-indigo-400 font-semibold">70%</span>
+                            </div>
+                            <input type="range" id="intensity-slider" min="0" max="100" value="70" 
+                                   class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        </div>
+                        
+                        <!-- Strength Slider -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase">Transformation Strength</label>
+                                <span id="strength-value" class="text-xs text-indigo-400 font-semibold">50%</span>
+                            </div>
+                            <input type="range" id="strength-slider" min="0" max="100" value="50" 
+                                   class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        </div>
+                        
+                        <!-- Color Temperature -->
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Color Mood</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button data-mood="warm" class="mood-btn active p-2 rounded-lg bg-amber-500/20 border border-amber-500/50 text-xs text-amber-400 hover:bg-amber-500/30 transition-all">
+                                    Warm
+                                </button>
+                                <button data-mood="neutral" class="mood-btn p-2 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-400 hover:bg-white/10 transition-all">
+                                    Neutral
+                                </button>
+                                <button data-mood="cool" class="mood-btn p-2 rounded-lg bg-blue-500/20 border border-blue-500/50 text-xs text-blue-400 hover:bg-blue-500/30 transition-all">
+                                    Cool
+                                </button>
+                                <button data-mood="vibrant" class="mood-btn p-2 rounded-lg bg-purple-500/20 border border-purple-500/50 text-xs text-purple-400 hover:bg-purple-500/30 transition-all">
+                                    Vibrant
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Clothing Category -->
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Focus Area</label>
+                            <select id="focus-area" class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="full">Full Outfit</option>
+                                <option value="top">Top / Shirt</option>
+                                <option value="bottom">Bottom / Pants</option>
+                                <option value="dress">Dress</option>
+                                <option value="outerwear">Outerwear / Jacket</option>
+                                <option value="accessories">Accessories</option>
+                            </select>
+                        </div>
+                    </div>
                     
                     <!-- Quick Prompts -->
-                    <div id="quick-prompts" class="flex flex-wrap gap-2">
-                        <button data-prompt="Anime style" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Anime style</button>
-                        <button data-prompt="Cyberpunk city" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Cyberpunk city</button>
-                        <button data-prompt="Studio Ghibli animation" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Studio Ghibli</button>
-                        <button data-prompt="Vintage film" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Vintage film</button>
-                        <button data-prompt="Oil painting" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Oil painting</button>
-                        <button data-prompt="Neon synthwave" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Neon synthwave</button>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Quick Styles</label>
+                        <div id="quick-prompts" class="flex flex-wrap gap-2">
+                            <button data-prompt="Elegant evening wear" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Elegant evening wear</button>
+                            <button data-prompt="Casual street style" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Casual street style</button>
+                            <button data-prompt="Business professional" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Business professional</button>
+                            <button data-prompt="Vintage retro fashion" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Vintage retro fashion</button>
+                            <button data-prompt="Modern minimalist" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Modern minimalist</button>
+                            <button data-prompt="Bohemian chic" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Bohemian chic</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,13 +273,13 @@
                 <p class="text-slate-500 text-xs mt-2">Loading DecartAI Realtime SDK</p>
             </div>
 
-            <!-- Model info overlay -->
-            <div class="absolute top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-slate-900/80 backdrop-blur-xl rounded-full border border-white/10 flex items-center gap-3">
+            <!-- Model info overlay - Hidden for cleaner AI experience -->
+            <!-- div class="absolute top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-slate-900/80 backdrop-blur-xl rounded-full border border-white/10 flex items-center gap-3">
                 <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                 <span id="model-name" class="text-sm font-bold">Mirage v2</span>
                 <span class="text-slate-500">|</span>
                 <span id="fps-display" class="text-xs text-slate-400">-- FPS</span>
-            </div>
+            </div -->
         </div>
 
         <!-- Right: Product Details -->
@@ -230,7 +294,7 @@
                     
                     <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
                         <div class="text-[10px] font-bold text-slate-500 uppercase mb-2">Current Mode</div>
-                        <div id="current-mode-display" class="text-sm font-semibold text-white">Mirage - Style Transformation</div>
+                        <div id="current-mode-display" class="text-sm font-semibold text-white">AI Real-time Transform</div>
                     </div>
                 </div>
             </div>
@@ -245,8 +309,8 @@
                 </div>
             </div>
 
-            <!-- AI Info -->
-            <div class="mt-auto">
+            <!-- AI Info - Hidden for cleaner AI experience -->
+            <div id="ai-info-section" class="mt-auto hidden">
                 <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">AI Information</h3>
                 <div class="space-y-3">
                     <div class="p-3 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
@@ -296,19 +360,19 @@
                 model: models.realtime('mirage_v2'),
                 name: 'Mirage v2',
                 description: 'Style Transformation',
-                quickPrompts: ['Anime style', 'Cyberpunk city', 'Studio Ghibli animation', 'Vintage film', 'Oil painting', 'Neon synthwave', 'Impressionist painting', 'Watercolor art']
+                quickPrompts: ['Elegant evening wear', 'Casual street style', 'Business professional', 'Vintage retro fashion', 'Modern minimalist', 'Bohemian chic', 'Athleisure wear', 'High fashion couture']
             },
             lucy: {
                 model: models.realtime('lucy_v2v_720p_rt'),
                 name: 'Lucy 2',
                 description: 'Video Editing',
-                quickPrompts: ['Add a dog', 'Change hair to blonde', 'Remove the car', 'Add sunglasses', 'Change shirt color to red', 'Replace background with beach', 'Add snow falling', 'Change day to night']
+                quickPrompts: ['Change shirt to white', 'Add a blazer', 'Change to dress', 'Add a scarf', 'Change pants to jeans', 'Remove jacket', 'Add accessories', 'Change to formal wear']
             },
             avatar: {
                 model: models.realtime('live_avatar'),
                 name: 'Avatar Live',
                 description: 'Talking Avatars',
-                quickPrompts: ['Smile warmly', 'Nod while speaking', 'Look enthusiastic', 'Wink playfully', 'Raise eyebrows', 'Tilt head slightly', 'Look surprised', 'Show excitement']
+                quickPrompts: ['Pose confidently', 'Show outfit details', 'Turn to show profile', 'Look elegant', 'Smile for camera', 'Model the clothing', 'Show different angles', 'Professional pose']
             }
         };
 
@@ -439,10 +503,13 @@
         // Update model info display
         function updateModelInfo() {
             const config = modelConfigs[currentMode];
-            modelNameDisplay.textContent = config.name;
-            currentModelInfo.textContent = `${config.name} - ${config.description}`;
-            document.getElementById('current-mode-display').textContent = `${config.name} - ${config.description}`;
-            document.getElementById('resolution-info').textContent = `${config.model.width} x ${config.model.height}`;
+            // Only update if elements exist (they may be hidden)
+            if (modelNameDisplay) modelNameDisplay.textContent = config.name;
+            if (currentModelInfo) currentModelInfo.textContent = `${config.name} - ${config.description}`;
+            const currentModeDisplay = document.getElementById('current-mode-display');
+            if (currentModeDisplay) currentModeDisplay.textContent = 'AI Real-time Transform';
+            const resolutionInfo = document.getElementById('resolution-info');
+            if (resolutionInfo) resolutionInfo.textContent = `${config.model.width} x ${config.model.height}`;
         }
 
         // Set AI mode
@@ -504,6 +571,53 @@
                 btn.addEventListener('click', () => applyPrompt(btn.dataset.prompt));
             });
             
+            // Intensity slider
+            const intensitySlider = document.getElementById('intensity-slider');
+            if (intensitySlider) {
+                intensitySlider.addEventListener('input', (e) => {
+                    document.getElementById('intensity-value').textContent = e.target.value + '%';
+                });
+            }
+            
+            // Strength slider
+            const strengthSlider = document.getElementById('strength-slider');
+            if (strengthSlider) {
+                strengthSlider.addEventListener('input', (e) => {
+                    document.getElementById('strength-value').textContent = e.target.value + '%';
+                });
+            }
+            
+            // Mood buttons
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.mood-btn').forEach(b => {
+                        b.classList.remove('active');
+                        // Reset to neutral style
+                        b.className = 'mood-btn p-2 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-400 hover:bg-white/10 transition-all';
+                    });
+                    // Set active style based on mood
+                    const mood = btn.dataset.mood;
+                    const moodStyles = {
+                        warm: 'bg-amber-500/20 border-amber-500/50 text-amber-400 hover:bg-amber-500/30',
+                        neutral: 'bg-slate-500/20 border-slate-500/50 text-slate-400 hover:bg-slate-500/30',
+                        cool: 'bg-blue-500/20 border-blue-500/50 text-blue-400 hover:bg-blue-500/30',
+                        vibrant: 'bg-purple-500/20 border-purple-500/50 text-purple-400 hover:bg-purple-500/30'
+                    };
+                    btn.className = `mood-btn active p-2 rounded-lg border text-xs transition-all ${moodStyles[mood]}`;
+                    
+                    // Update prompt with mood
+                    updatePromptWithMood(mood);
+                });
+            });
+            
+            // Focus area select
+            const focusArea = document.getElementById('focus-area');
+            if (focusArea) {
+                focusArea.addEventListener('change', () => {
+                    updatePromptWithFocusArea(focusArea.value);
+                });
+            }
+            
             // Action buttons
             document.querySelector('[data-action="apply-prompt"]')?.addEventListener('click', () => applyPrompt());
             document.querySelector('[data-action="capture-snapshot"]')?.addEventListener('click', captureSnapshot);
@@ -517,8 +631,11 @@
                 promptInput.value = prompt;
             }
 
+            // Build enhanced prompt with options
+            const enhancedPrompt = buildEnhancedPrompt(promptInput.value);
+            
             if (realtimeClient) {
-                realtimeClient.setPrompt(promptInput.value);
+                realtimeClient.setPrompt(enhancedPrompt);
                 
                 // Visual feedback
                 const btn = document.getElementById('apply-btn');
@@ -530,6 +647,65 @@
                 }, 1500);
             }
         };
+        
+        // Build enhanced prompt with options
+        function buildEnhancedPrompt(basePrompt) {
+            const intensity = document.getElementById('intensity-slider')?.value || 70;
+            const strength = document.getElementById('strength-slider')?.value || 50;
+            const activeMood = document.querySelector('.mood-btn.active')?.dataset.mood || 'neutral';
+            const focusArea = document.getElementById('focus-area')?.value || 'full';
+            
+            const moodModifiers = {
+                warm: 'warm tones, golden lighting, cozy atmosphere',
+                neutral: 'balanced colors, natural lighting, neutral tones',
+                cool: 'cool tones, blue lighting, crisp atmosphere',
+                vibrant: 'vibrant colors, saturated, bold colors, dynamic lighting'
+            };
+            
+            const focusModifiers = {
+                full: 'full outfit transformation',
+                top: 'top shirt transformation',
+                bottom: 'pants and bottom wear transformation',
+                dress: 'dress transformation',
+                outerwear: 'jacket and outerwear transformation',
+                accessories: 'accessories and details enhancement'
+            };
+            
+            let enhanced = basePrompt;
+            enhanced += `, ${moodModifiers[activeMood]}`;
+            enhanced += `, ${focusModifiers[focusArea]}`;
+            enhanced += `, style intensity ${intensity}%, transformation strength ${strength}%`;
+            
+            return enhanced;
+        }
+        
+        // Update prompt with mood
+        function updatePromptWithMood(mood) {
+            const moodDescriptions = {
+                warm: 'Elegant evening wear with warm golden tones',
+                neutral: 'Elegant evening wear with balanced natural colors',
+                cool: 'Elegant evening wear with cool crisp tones',
+                vibrant: 'Elegant evening wear with vibrant saturated colors'
+            };
+            promptInput.value = moodDescriptions[mood];
+        }
+        
+        // Update prompt with focus area
+        function updatePromptWithFocusArea(area) {
+            const currentPrompt = promptInput.value;
+            const areaDescriptions = {
+                full: 'full outfit',
+                top: 'top and shirt',
+                bottom: 'pants and bottom wear',
+                dress: 'dress',
+                outerwear: 'jacket and outerwear',
+                accessories: 'accessories and details'
+            };
+            // Update prompt to include focus area
+            if (!currentPrompt.toLowerCase().includes(areaDescriptions[area].toLowerCase())) {
+                promptInput.value = `${currentPrompt}, focus on ${areaDescriptions[area]}`;
+            }
+        }
 
         // Toggle audio for Avatar Live
         window.toggleAudio = async function() {

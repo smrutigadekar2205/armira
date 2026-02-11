@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wardrobe - ARmira</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Overrides -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="hero-gradient min-h-screen">
+    <!-- Navbar -->
+    <nav class="navbar-modern">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
+            <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
+        </a>
+        
+        <div class="navbar-links">
+            <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
+            <a href="{{ url_for('about') }}" class="navbar-link">About</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link active">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link">Settings</a>
+            {% if studio3_visible %}
+            <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
+            {% endif %}
+        </div>
+
+        <div class="ml-auto flex items-center gap-4">
+            <div class="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400">
+                <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-slate-900 mb-2">My Wardrobe</h1>
+                    <p class="text-slate-500">Manage your virtual outfit collection</p>
+                </div>
+                <button onclick="document.getElementById('add-garment-modal').classList.remove('hidden')" 
+                        class="btn-modern btn-primary px-6 py-3 rounded-xl">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    Add New Outfit
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                <div class="card-modern p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                            <i data-lucide="shirt" class="w-5 h-5 text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-slate-900">{{ garments|length }}</div>
+                            <div class="text-xs text-slate-500">Total Items</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-modern p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <i data-lucide="tag" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-slate-900">{{ garments|selectattr('category', 'equalto', 'Tops')|list|length }}</div>
+                            <div class="text-xs text-slate-500">Tops</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-modern p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
+                            <i data-lucide="bookmark" class="w-5 h-5 text-pink-600"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-slate-900">{{ garments|selectattr('category', 'equalto', 'Dresses')|list|length }}</div>
+                            <div class="text-xs text-slate-500">Dresses</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-modern p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                            <i data-lucide="layers" class="w-5 h-5 text-emerald-600"></i>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-slate-900">{{ garments|selectattr('category', 'equalto', 'Outerwear')|list|length }}</div>
+                            <div class="text-xs text-slate-500">Outerwear</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Garments Grid -->
+            {% if garments %}
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {% for garment in garments %}
+                <div class="card-modern group relative" data-filename="{{ garment.filename }}">
+                    <div class="aspect-[3/4] rounded-2xl overflow-hidden bg-slate-100 mb-4">
+                        <img src="{{ url_for('static', filename='uploads/garments/' + garment.filename) }}" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-slate-400\'><i data-lucide=\'image\' class=\'w-8 h-8\'></i></div>'">
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase text-indigo-600 tracking-widest">{{ garment.category }}</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs font-bold rounded">{{ garment.size }}</span>
+                                {% if garment.price %}
+                                <span class="text-sm font-bold text-slate-700">{{ garment.price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <button onclick="removeGarment('{{ garment.filename }}')" 
+                                class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-modern py-20 text-center">
+                <div class="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-300">
+                    <i data-lucide="shopping-bag" class="w-10 h-10"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Your wardrobe is empty</h3>
+                <p class="text-slate-500 mb-6">Add your first outfit to get started with virtual try-on</p>
+                <button onclick="document.getElementById('add-garment-modal').classList.remove('hidden')" 
+                        class="btn-modern btn-primary px-6 py-3 rounded-xl">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    Add First Outfit
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Add Garment Modal -->
+    <div id="add-garment-modal" class="fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">Add New Outfit</h2>
+                <button onclick="document.getElementById('add-garment-modal').classList.add('hidden')" 
+                        class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200">
+                    <i data-lucide="x" class="w-5 h-5 text-slate-600"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('upload_garment') }}" method="post" enctype="multipart/form-data" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Outfit Image</label>
+                    <div class="p-8 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-indigo-400 transition-all group relative text-center">
+                        <input type="file" name="garment_image" id="garment_image" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" required>
+                        <i data-lucide="image-plus" class="w-10 h-10 text-indigo-300 mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+                        <p class="text-sm font-bold text-slate-700">Drop item photo</p>
+                        <p class="text-xs text-slate-400 mt-1">PNG, JPG, WEBP</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+                        <select name="category" class="form-input">
+                            <option value="Tops">Tops</option>
+                            <option value="Bottoms">Bottoms</option>
+                            <option value="Dresses">Dresses</option>
+                            <option value="Outerwear">Outerwear</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Size Type</label>
+                        <div class="flex bg-slate-100 rounded-xl p-1">
+                            <button type="button" onclick="setSizing('std')" id="btn-std" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition-all">Standard</button>
+                            <button type="button" onclick="setSizing('custom')" id="btn-custom" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 transition-all">Custom</button>
+                        </div>
+                        <input type="hidden" name="size_type" id="size_type_input" value="standard">
+                    </div>
+                </div>
+
+                <div id="sizing-std-input">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Size Label</label>
+                    <input type="text" name="size" placeholder="M" class="form-input">
+                </div>
+
+                <div id="sizing-custom-input" class="hidden grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Chest</label>
+                        <input type="number" name="g_chest_cm" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Waist</label>
+                        <input type="number" name="g_waist_cm" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Length</label>
+                        <input type="number" name="g_length_cm" class="form-input">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-modern btn-primary w-full py-4 rounded-xl">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    Add to Wardrobe
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function setSizing(type) {
+            const isStd = type === 'std';
+            document.getElementById('size_type_input').value = isStd ? 'standard' : 'custom';
+            
+            const btnStd = document.getElementById('btn-std');
+            const btnCustom = document.getElementById('btn-custom');
+            
+            if(isStd) {
+                btnStd.classList.add('bg-indigo-600', 'text-white');
+                btnStd.classList.remove('text-slate-500');
+                btnCustom.classList.remove('bg-indigo-600', 'text-white');
+                btnCustom.classList.add('text-slate-500');
+                document.getElementById('sizing-std-input').classList.remove('hidden');
+                document.getElementById('sizing-custom-input').classList.add('hidden');
+            } else {
+                btnCustom.classList.add('bg-indigo-600', 'text-white');
+                btnCustom.classList.remove('text-slate-500');
+                btnStd.classList.remove('bg-indigo-600', 'text-white');
+                btnStd.classList.add('text-slate-500');
+                document.getElementById('sizing-std-input').classList.add('hidden');
+                document.getElementById('sizing-custom-input').classList.remove('hidden');
+            }
+        }
+
+        async function removeGarment(filename) {
+            if (!confirm('Are you sure you want to remove this outfit from your wardrobe?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wardrobe/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+
+                if (response.ok) {
+                    // Remove element from DOM with animation
+                    const card = document.querySelector(`[data-filename="${filename}"]`);
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        card.remove();
+                        // Reload page if no garments left
+                        if (document.querySelectorAll('[data-filename]').length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                } else {
+                    alert('Failed to remove outfit');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

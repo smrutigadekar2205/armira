@@ -15,9 +15,7 @@
     <!-- Navbar -->
     <nav class="navbar-modern">
         <a href="{{ url_for('index') }}" class="navbar-brand">
-            <div class="navbar-logo">
-                <i data-lucide="shirt" class="w-6 h-6"></i>
-            </div>
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
             <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
         </a>
         
@@ -26,7 +24,11 @@
             <a href="{{ url_for('about') }}" class="navbar-link active">About</a>
             <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
             <a href="{{ url_for('studio2') }}" class="navbar-link">Studio 2 (AR)</a>
+            {% if studio3_visible %}
             <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
+            {% endif %}
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link">Settings</a>
         </div>
 
         <div class="ml-auto flex items-center gap-4">
@@ -134,9 +136,7 @@
         <div class="max-w-7xl mx-auto px-6">
             <div class="flex flex-col md:flex-row justify-between items-center gap-10">
                 <a href="{{ url_for('index') }}" class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i data-lucide="shirt" class="w-6 h-6"></i>
-                    </div>
+                    <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-10 h-10">
                     <span class="text-xl font-extrabold tracking-tight text-slate-900">AR<span class="text-indigo-600">mira</span></span>
                 </a>
                 
@@ -144,6 +144,8 @@
                     <a href="{{ url_for('index') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Home</a>
                     <a href="{{ url_for('about') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">About</a>
                     <a href="{{ url_for('demo') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Demo</a>
+                    <a href="{{ url_for('wardrobe') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Wardrobe</a>
+                    <a href="{{ url_for('settings') }}" class="text-slate-600 hover:text-indigo-600 font-medium transition-colors">Settings</a>
                 </div>
 
                 <p class="text-slate-500 text-sm">&copy; 2026 ARmira. All rights reserved.</p>

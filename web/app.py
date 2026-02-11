@@ -39,6 +39,12 @@ GARMENT_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'garments')
 RESULTS_FOLDER = os.path.join(BASE_DIR, 'web', 'static', 'results')
 DATA_ROOT = os.path.join(BASE_DIR, 'data')
 
+# API Keys Configuration file
+API_KEYS_FILE = os.path.join(BASE_DIR, 'web', 'api_keys.json')
+
+# Studio3 visibility setting
+STUDIO3_VISIBLE = os.environ.get('STUDIO3_VISIBLE', 'true').lower() == 'true'
+
 # API4AI Configuration
 API4AI_API_KEY = os.environ.get('API4AI_API_KEY', 'a4a-J9xM0FVgstpmGHyj9xy7egW1T71GIsid')
 API4AI_URL = 'https://api4ai.cloud/virtual-try-on/v1/results'
@@ -84,15 +90,15 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', studio3_visible=STUDIO3_VISIBLE)
 
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', studio3_visible=STUDIO3_VISIBLE)
 
 @app.route('/demo')
 def demo():
-    return render_template('demo.html')
+    return render_template('demo.html', studio3_visible=STUDIO3_VISIBLE)
 
 def load_garment_metadata():
     if os.path.exists(GARMENT_METADATA_FILE):
@@ -110,6 +116,37 @@ def load_garment_metadata():
 def save_garment_metadata(metadata):
     with open(GARMENT_METADATA_FILE, 'w') as f:
         json.dump(metadata, f, indent=4)
+
+# API Keys Management
+def load_api_keys():
+    """Load API keys from JSON file, fallback to environment variables"""
+    if os.path.exists(API_KEYS_FILE):
+        with open(API_KEYS_FILE, 'r') as f:
+            return json.load(f)
+    return {
+        'api4ai': os.environ.get('API4AI_API_KEY', ''),
+        'decart': os.environ.get('DECART_API_KEY', ''),
+        'snap': os.environ.get('SNAP_API_TOKEN', '')
+    }
+
+def save_api_keys(keys):
+    """Save API keys to JSON file"""
+    with open(API_KEYS_FILE, 'w') as f:
+        json.dump(keys, f, indent=4)
+
+def get_api_key(key_name):
+    """Get API key from file or environment, with priority to file"""
+    keys = load_api_keys()
+    if keys.get(key_name):
+        return keys[key_name]
+    # Fallback to environment
+    if key_name == 'api4ai':
+        return os.environ.get('API4AI_API_KEY', '')
+    elif key_name == 'decart':
+        return os.environ.get('DECART_API_KEY', '')
+    elif key_name == 'snap':
+        return os.environ.get('SNAP_API_TOKEN', '')
+    return ''
 
 @app.route('/upload_user', methods=['POST'])
 def upload_user():
@@ -241,12 +278,12 @@ def select_garments():
 def upload_garment():
     if 'garment_image' not in request.files:
         flash('No file part')
-        return redirect(request.url)
+        return redirect(url_for('demo'))
         
     file = request.files['garment_image']
     if file.filename == '':
         flash('No selected file')
-        return redirect(request.url)
+        return redirect(url_for('demo'))
         
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -381,23 +418,118 @@ def studio():
 
     return render_template('studio.html',
                            current_garment=current_garment,
-                           all_garments=all_garments)
+                           all_garments=all_garments,
+                           studio3_visible=STUDIO3_VISIBLE)
 
 @app.route('/studio2')
 def studio2():
     """AR Studio 2 - Real-time AR effects using Snap Camera Kit"""
-    return render_template('studio2.html')
+    return render_template('studio2.html', studio3_visible=STUDIO3_VISIBLE)
 
 @app.route('/studio3')
 def studio3():
     """AR Studio 3 - Real-time AI transformations using DecartAI Realtime API"""
-    api_key = os.environ.get('DECART_API_KEY', '')
-    return render_template('studio3.html', api_key=api_key)
+    api_key = get_api_key('decart')
+    return render_template('studio3.html', api_key=api_key, studio3_visible=STUDIO3_VISIBLE)
 
 @app.route('/studio3-test')
 def studio3_test():
     """Test page for Studio 3 - Simple interface for testing DecartAI"""
     return app.send_static_file('studio3-test.html')
+
+@app.route('/wardrobe')
+def wardrobe():
+    """Wardrobe management page - Add/Remove outfits"""
+    metadata = load_garment_metadata()
+    garments = []
+    if os.path.exists(GARMENT_UPLOAD_FOLDER):
+        for f in os.listdir(GARMENT_UPLOAD_FOLDER):
+            if allowed_file(f):
+                info = metadata.get(f, {'size': 'M', 'category': 'Unknown'})
+                uploaded_at = info.get('uploaded_at', 0)
+                # Convert to float if it's a string
+                if isinstance(uploaded_at, str):
+                    try:
+                        uploaded_at = float(uploaded_at)
+                    except (ValueError, TypeError):
+                        uploaded_at = 0
+                garments.append({
+                    'filename': f,
+                    'size': info.get('size', 'M'),
+                    'category': info.get('category', 'Unknown'),
+                    'material': info.get('material', ''),
+                    'price': info.get('price', ''),
+                    'uploaded_at': uploaded_at
+                })
+    # Sort by upload date (newest first)
+    garments.sort(key=lambda x: x.get('uploaded_at', 0) or 0, reverse=True)
+    return render_template('wardrobe.html', garments=garments, studio3_visible=STUDIO3_VISIBLE)
+
+@app.route('/api/wardrobe/remove', methods=['POST'])
+def remove_garment():
+    """Remove a garment from wardrobe"""
+    filename = request.json.get('filename')
+    if not filename:
+        return jsonify({'error': 'No filename provided'}), 400
+    
+    # Remove file
+    filepath = os.path.join(GARMENT_UPLOAD_FOLDER, filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+    
+    # Remove from metadata
+    metadata = load_garment_metadata()
+    if filename in metadata:
+        del metadata[filename]
+        save_garment_metadata(metadata)
+    
+    return jsonify({'success': True})
+
+@app.route('/settings')
+def settings():
+    """API Keys settings page"""
+    api_keys = load_api_keys()
+    # Mask keys for display
+    masked_keys = {
+        'api4ai': mask_key(api_keys.get('api4ai', '')),
+        'decart': mask_key(api_keys.get('decart', '')),
+        'snap': mask_key(api_keys.get('snap', ''))
+    }
+    return render_template('settings.html', api_keys=masked_keys, studio3_visible=STUDIO3_VISIBLE)
+
+@app.route('/api/settings/save', methods=['POST'])
+def save_settings():
+    """Save API keys settings"""
+    data = request.json
+    
+    # Load existing keys
+    existing_keys = load_api_keys()
+    
+    # Update only provided keys that are not masked
+    if data.get('api4ai') and not data['api4ai'].startswith('•'):
+        existing_keys['api4ai'] = data['api4ai']
+    if data.get('decart') and not data['decart'].startswith('•'):
+        existing_keys['decart'] = data['decart']
+    if data.get('snap') and not data['snap'].startswith('•'):
+        existing_keys['snap'] = data['snap']
+    
+    # Save studio3 visibility
+    if 'studio3_visible' in data:
+        existing_keys['studio3_visible'] = data['studio3_visible']
+    
+    save_api_keys(existing_keys)
+    
+    # Update runtime variable
+    global STUDIO3_VISIBLE
+    STUDIO3_VISIBLE = existing_keys.get('studio3_visible', True)
+    
+    return jsonify({'success': True})
+
+def mask_key(key):
+    """Mask API key for display - show first 4 and last 4 chars"""
+    if not key or len(key) < 8:
+        return '•' * 12
+    return key[:4] + '•' * (len(key) - 8) + key[-4:]
 
 @app.route('/api_virtual_try_on', methods=['POST'])
 def api_virtual_try_on():

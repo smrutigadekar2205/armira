@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - ARmira</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Overrides -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="hero-gradient min-h-screen">
+    <!-- Navbar -->
+    <nav class="navbar-modern">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
+            <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
+        </a>
+        
+        <div class="navbar-links">
+            <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
+            <a href="{{ url_for('about') }}" class="navbar-link">About</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link active">Settings</a>
+            {% if studio3_visible %}
+            <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
+            {% endif %}
+        </div>
+
+        <div class="ml-auto flex items-center gap-4">
+            <div class="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400">
+                <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20">
+        <div class="max-w-4xl mx-auto px-6">
+            <!-- Header -->
+            <div class="mb-10">
+                <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Settings</h1>
+                <p class="text-slate-500">Manage API keys and application preferences</p>
+            </div>
+
+            <!-- API Keys Section -->
+            <div class="card-modern mb-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="key" class="w-5 h-5 text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">API Keys</h2>
+                        <p class="text-sm text-slate-500">Configure external service integrations</p>
+                    </div>
+                </div>
+
+                <form id="api-keys-form" class="space-y-6">
+                    <!-- API4AI Key -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            API4AI Key
+                            <span class="text-xs font-normal text-slate-400 ml-2">(Virtual Try-On API)</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="api4ai-key" value="{{ api_keys.api4ai }}" 
+                                   class="form-input pr-24" placeholder="Enter API key or leave blank to use environment variable">
+                            <button type="button" onclick="toggleVisibility('api4ai-key', this)" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Get your key from <a href="https://api4ai.cloud/" target="_blank" class="text-indigo-600 hover:underline">api4ai.cloud</a></p>
+                    </div>
+
+                    <!-- DecartAI Key -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            DecartAI Key
+                            <span class="text-xs font-normal text-slate-400 ml-2">(Studio 3 - AI Transformations)</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="decart-key" value="{{ api_keys.decart }}" 
+                                   class="form-input pr-24" placeholder="Enter API key or leave blank to use environment variable">
+                            <button type="button" onclick="toggleVisibility('decart-key', this)" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Get your key from <a href="https://decart.ai/" target="_blank" class="text-indigo-600 hover:underline">decart.ai</a></p>
+                    </div>
+
+                    <!-- Snap Camera Kit Token -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Snap Camera Kit Token
+                            <span class="text-xs font-normal text-slate-400 ml-2">(Studio 2 - AR Effects)</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="snap-key" value="{{ api_keys.snap }}" 
+                                   class="form-input pr-24" placeholder="Enter API token or leave blank to use environment variable">
+                            <button type="button" onclick="toggleVisibility('snap-key', this)" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Get your token from <a href="https://kit.snapchat.com/" target="_blank" class="text-indigo-600 hover:underline">kit.snapchat.com</a></p>
+                    </div>
+
+                    <button type="submit" class="btn-modern btn-primary px-8 py-3 rounded-xl">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        Save API Keys
+                    </button>
+                </form>
+            </div>
+
+            <!-- App Settings Section -->
+            <div class="card-modern">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="settings-2" class="w-5 h-5 text-purple-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Application Settings</h2>
+                        <p class="text-sm text-slate-500">Configure app behavior and visibility</p>
+                    </div>
+                </div>
+
+                <form id="app-settings-form" class="space-y-6">
+                    <!-- Studio 3 Visibility -->
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                        <div>
+                            <h3 class="font-semibold text-slate-900">Show Studio 3 (AI)</h3>
+                            <p class="text-sm text-slate-500">Enable or disable AI-powered studio features</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="studio3-visible" class="sr-only peer" {% if studio3_visible %}checked{% endif %}>
+                            <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-modern bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        Save Settings
+                    </button>
+                </form>
+            </div>
+
+            <!-- Environment Variables Info -->
+            <div class="card-modern bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100 mt-8">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
+                        <i data-lucide="info" class="w-5 h-5 text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-2">About Environment Variables</h3>
+                        <p class="text-sm text-slate-600 mb-3">
+                            API keys can be set via environment variables for production deployments. If a field is left blank here, the application will automatically use the corresponding environment variable:
+                        </p>
+                        <ul class="text-sm text-slate-600 space-y-1 font-mono text-xs">
+                            <li><code class="bg-white px-2 py-1 rounded">API4AI_API_KEY</code></li>
+                            <li><code class="bg-white px-2 py-1 rounded">DECART_API_KEY</code></li>
+                            <li><code class="bg-white px-2 py-1 rounded">SNAP_API_TOKEN</code></li>
+                            <li><code class="bg-white px-2 py-1 rounded">STUDIO3_VISIBLE</code> (true/false)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Toggle password visibility
+        function toggleVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        // Initialize inputs as password type
+        document.addEventListener('DOMContentLoaded', function() {
+            ['api4ai-key', 'decart-key', 'snap-key'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input.value && !input.value.startsWith('•')) {
+                    input.type = 'password';
+                }
+            });
+        });
+
+        // Save API Keys
+        document.getElementById('api-keys-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                api4ai: document.getElementById('api4ai-key').value,
+                decart: document.getElementById('decart-key').value,
+                snap: document.getElementById('snap-key').value
+            };
+
+            try {
+                const response = await fetch('/api/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showToast('API keys saved successfully!', 'success');
+                } else {
+                    showToast('Failed to save API keys', 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        });
+
+        // Save App Settings
+        document.getElementById('app-settings-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                studio3_visible: document.getElementById('studio3-visible').checked
+            };
+
+            try {
+                const response = await fetch('/api/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showToast('Settings saved successfully!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Failed to save settings', 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        });
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 ${
+                type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            toast.innerHTML = `
+                <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+                <span class="font-medium">${message}</span>
+            `;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -50,9 +50,7 @@
     <!-- Navbar -->
     <nav class="navbar-modern">
         <a href="{{ url_for('index') }}" class="navbar-brand">
-            <div class="navbar-logo">
-                <i data-lucide="shirt" class="w-6 h-6"></i>
-            </div>
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
             <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
         </a>
         
@@ -60,6 +58,12 @@
             <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
             <a href="{{ url_for('about') }}" class="navbar-link">About</a>
             <a href="{{ url_for('demo') }}" class="navbar-link active">Studio</a>
+            <a href="{{ url_for('studio2') }}" class="navbar-link">Studio 2 (AR)</a>
+            {% if studio3_visible %}
+            <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
+            {% endif %}
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link">Settings</a>
         </div>
 
         <div class="ml-auto flex items-center gap-4">
@@ -100,6 +104,51 @@
                     <p class="text-xs text-slate-500 leading-relaxed">
                         Experience our proprietary <span class="text-indigo-400">DrapeSync™</span> technology. The virtual garment adapts to your pose and lighting in real-time.
                     </p>
+                </div>
+            </div>
+
+            <!-- Studio Mode Switcher -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Studio Mode</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="p-4 rounded-xl border-2 border-indigo-500 bg-indigo-500/10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                <i data-lucide="shirt" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-sm text-white">Virtual Try-On</div>
+                                <div class="text-[10px] text-slate-400">Current Mode</div>
+                            </div>
+                            <i data-lucide="check-circle" class="w-5 h-5 text-indigo-400"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('studio2') }}" class="block p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-sm text-white">AR Mode</div>
+                                <div class="text-[10px] text-slate-400">Snap Camera Kit</div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500"></i>
+                        </div>
+                    </a>
+                    {% if studio3_visible %}
+                    <a href="{{ url_for('studio3') }}" class="block p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                                <i data-lucide="wand-2" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-sm text-white">AI Mode</div>
+                                <div class="text-[10px] text-slate-400">Real-time AI Transform</div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500"></i>
+                        </div>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
 

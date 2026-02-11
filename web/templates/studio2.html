@@ -55,17 +55,20 @@
     <!-- Navbar -->
     <nav class="navbar-modern">
         <a href="{{ url_for('index') }}" class="navbar-brand">
-            <div class="navbar-logo">
-                <i data-lucide="shirt" class="w-6 h-6"></i>
-            </div>
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
             <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
         </a>
 
         <div class="navbar-links">
             <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
             <a href="{{ url_for('about') }}" class="navbar-link">About</a>
-            <a href="{{ url_for('studio') }}" class="navbar-link">Studio</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
             <a href="{{ url_for('studio2') }}" class="navbar-link active">Studio 2 (AR)</a>
+            {% if studio3_visible %}
+            <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
+            {% endif %}
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link">Settings</a>
         </div>
 
         <div class="ml-auto flex items-center gap-4">
