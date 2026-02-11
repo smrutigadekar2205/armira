@@ -61,6 +61,24 @@ DEFAULT_GARMENTS_FOLDER = os.path.join(BASE_DIR, 'web', 'static', 'garments_defa
 DEFAULT_GARMENTS_METADATA = os.path.join(DEFAULT_GARMENTS_FOLDER, 'metadata.json')
 GARMENT_METADATA_FILE = os.path.join(GARMENT_UPLOAD_FOLDER, 'metadata.json')
 
+# Metadata functions (must be defined before initialize_default_garments)
+def load_garment_metadata():
+    if os.path.exists(GARMENT_METADATA_FILE):
+        with open(GARMENT_METADATA_FILE, 'r') as f:
+            data = json.load(f)
+            # Add dummy price and material if missing
+            for item in data.values():
+                if 'price' not in item:
+                    item['price'] = f"${np.random.randint(29, 129)}.00"
+                if 'material' not in item:
+                    item['material'] = np.random.choice(['Organic Cotton', 'Recycled Polyester', 'Premium Silk', 'Tech-Mesh'])
+            return data
+    return {}
+
+def save_garment_metadata(metadata):
+    with open(GARMENT_METADATA_FILE, 'w') as f:
+        json.dump(metadata, f, indent=4)
+
 # Initialize default garments if they don't exist in uploads
 def initialize_default_garments():
     """Copy default garments to uploads folder if not already present"""
@@ -99,23 +117,6 @@ def about():
 @app.route('/demo')
 def demo():
     return render_template('demo.html', studio3_visible=STUDIO3_VISIBLE)
-
-def load_garment_metadata():
-    if os.path.exists(GARMENT_METADATA_FILE):
-        with open(GARMENT_METADATA_FILE, 'r') as f:
-            data = json.load(f)
-            # Add dummy price and material if missing
-            for item in data.values():
-                if 'price' not in item:
-                    item['price'] = f"${np.random.randint(29, 129)}.00"
-                if 'material' not in item:
-                    item['material'] = np.random.choice(['Organic Cotton', 'Recycled Polyester', 'Premium Silk', 'Tech-Mesh'])
-            return data
-    return {}
-
-def save_garment_metadata(metadata):
-    with open(GARMENT_METADATA_FILE, 'w') as f:
-        json.dump(metadata, f, indent=4)
 
 # API Keys Management
 def load_api_keys():
