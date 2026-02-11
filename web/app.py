@@ -22,6 +22,15 @@ from size_estimator import SizeEstimator
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
+# Serve node_modules as static files for SDK imports
+app.static_folder = 'static'
+node_modules_path = os.path.join(os.path.dirname(__file__), 'node_modules')
+if os.path.exists(node_modules_path):
+    @app.route('/node_modules/<path:filename>')
+    def serve_node_modules(filename):
+        from flask import send_from_directory
+        return send_from_directory(node_modules_path, filename)
+
 # Configuration
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'web', 'static', 'uploads')
@@ -378,6 +387,17 @@ def studio():
 def studio2():
     """AR Studio 2 - Real-time AR effects using Snap Camera Kit"""
     return render_template('studio2.html')
+
+@app.route('/studio3')
+def studio3():
+    """AR Studio 3 - Real-time AI transformations using DecartAI Realtime API"""
+    api_key = os.environ.get('DECART_API_KEY', '')
+    return render_template('studio3.html', api_key=api_key)
+
+@app.route('/studio3-test')
+def studio3_test():
+    """Test page for Studio 3 - Simple interface for testing DecartAI"""
+    return app.send_static_file('studio3-test.html')
 
 @app.route('/api_virtual_try_on', methods=['POST'])
 def api_virtual_try_on():

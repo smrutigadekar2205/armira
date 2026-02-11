@@ -7,6 +7,38 @@ Official implementation for "CP-VTON+: Clothing Shape and Texture Preserving Ima
 <br/><br/>
 [Project page](https://minar09.github.io/cpvtonplus/) | [Paper](https://minar09.github.io/cpvtonplus/cvprw20_cpvtonplus.pdf) | [Dataset](https://1drv.ms/u/c/5435770760f02d2f/ES8t8GAHdzUggFSEBAAAAAABdOEe5WT0SPidEIqFG-ys-Q?e=qGt3BA) | [Model](https://1drv.ms/u/c/5435770760f02d2f/ES8t8GAHdzUggFSABAAAAAAB5ArDGoOr2-DU2pyW7NmH-g?e=7ZUxRA) | [Video](https://www.youtube.com/watch?v=MPB_PYLOfd8)
 <br/><br/>
+
+## Web Application Features
+
+This project includes a modern web application with multiple studio modes:
+
+### Studio 3 - Real-time AI Transformations
+Powered by DecartAI Realtime API, Studio 3 offers three AI-powered modes:
+
+1. **Mirage** - Style Transformation
+   - Transform your video stream with artistic styles
+   - Examples: "Anime style", "Cyberpunk city", "Studio Ghibli animation"
+   - Perfect for creative effects and visual themes
+
+2. **Lucy** - Video Editing
+   - Add, modify, or remove objects in real-time
+   - Examples: "Add a dog", "Change hair to blonde", "Remove the car"
+   - Ideal for content modification and interactive experiences
+
+3. **Avatar Live** - Talking Avatars
+   - Animate portrait images with audio input
+   - Create lifelike talking avatars with synchronized lip movements
+   - Perfect for virtual presenters and interactive agents
+
+**Setup:**
+1. Get your API key from https://decart.ai/
+2. Add `DECART_API_KEY=your_key_here` to your `.env` file
+3. Access Studio 3 from the navigation menu
+
+### Other Studios
+- **Studio**: Traditional virtual try-on with garment overlay
+- **Studio 2**: AR effects using Snap Camera Kit
+
 	
 ## Usage
 This pipeline combines consecutive training and testing of GMM and TOM. GMM generates the warped clothes according to the target human. Then, TOM blends the warped clothes outputs from GMM into the target human properties to generate the final try-on output.

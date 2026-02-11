@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio 3 Test - DecartAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            min-height: 100vh;
+        }
+        .video-container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-8">
+    <div class="max-w-4xl w-full">
+        <h1 class="text-4xl font-bold text-white text-center mb-2">Studio 3 Test</h1>
+        <p class="text-indigo-300 text-center mb-8">DecartAI Realtime API Integration</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Input Video -->
+            <div>
+                <h2 class="text-xl font-semibold text-white mb-4">Input (Camera)</h2>
+                <div class="video-container">
+                    <video id="video-input" autoplay playsinline></video>
+                </div>
+            </div>
+
+            <!-- Output Video -->
+            <div>
+                <h2 class="text-xl font-semibold text-white mb-4">Output (Transformed)</h2>
+                <div class="video-container">
+                    <video id="video-output" autoplay playsinline></video>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-8 bg-white/10 backdrop-blur-lg rounded-xl p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Mode Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">AI Mode</label>
+                    <select id="mode-select" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                        <option value="mirage">Mirage (Style Transformation)</option>
+                        <option value="lucy">Lucy (Video Editing)</option>
+                        <option value="avatar">Avatar Live (Talking Avatars)</option>
+                    </select>
+                </div>
+
+                <!-- Prompt Input -->
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Prompt</label>
+                    <input type="text" id="prompt-input" value="Anime style"
+                           class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white">
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-4 mt-6">
+                <button id="connect-btn" onclick="connectToDecartAI()"
+                        class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors">
+                    Connect to DecartAI
+                </button>
+                <button onclick="applyPrompt()"
+                        class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">
+                    Apply Prompt
+                </button>
+                <button onclick="stopConnection()"
+                        class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                    Stop
+                </button>
+            </div>
+
+            <!-- Status -->
+            <div class="mt-6">
+                <div id="status" class="text-center text-white font-medium">Ready to connect...</div>
+                <div id="error" class="mt-2 text-center text-red-400 text-sm hidden"></div>
+            </div>
+        </div>
+
+        <!-- Quick Prompts -->
+        <div class="mt-6 bg-white/10 backdrop-blur-lg rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Quick Prompts</h3>
+            <div id="quick-prompts" class="flex flex-wrap gap-2">
+                <button onclick="applyQuickPrompt('Anime style')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">Anime style</button>
+                <button onclick="applyQuickPrompt('Cyberpunk city')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">Cyberpunk city</button>
+                <button onclick="applyQuickPrompt('Studio Ghibli animation')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">Studio Ghibli</button>
+                <button onclick="applyQuickPrompt('Vintage film')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">Vintage film</button>
+                <button onclick="applyQuickPrompt('Oil painting')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm">Oil painting</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import from esm.sh CDN (handles dependency resolution)
+        import { createDecartClient, models } from 'https://esm.sh/@decartai/sdk@0.0.41';
+
+        // Global state
+        let realtimeClient = null;
+        let currentStream = null;
+
+        const videoInput = document.getElementById('video-input');
+        const videoOutput = document.getElementById('video-output');
+        const statusEl = document.getElementById('status');
+        const errorEl = document.getElementById('error');
+        const connectBtn = document.getElementById('connect-btn');
+
+        const modelConfigs = {
+            mirage: models.realtime('mirage_v2'),
+            lucy: models.realtime('lucy_2_rt'),
+            avatar: models.realtime('avatar_live')
+        };
+
+        async function initCamera() {
+            try {
+                const mode = document.getElementById('mode-select').value;
+                const model = modelConfigs[mode];
+                
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        frameRate: model.fps,
+                        width: model.width,
+                        height: model.height
+                    }
+                });
+                videoInput.srcObject = currentStream;
+                await videoInput.play();
+                updateStatus('Camera ready');
+            } catch (err) {
+                showError('Camera error: ' + err.message);
+            }
+        }
+
+        window.connectToDecartAI = async function() {
+            try {
+                updateStatus('Connecting...');
+                errorEl.classList.add('hidden');
+                connectBtn.disabled = true;
+
+                const apiKey = 'test_YUuzDrKSTXxgzrCxPejyUxCDLpSXqqkjTyopuTEVmNfaDAlrKSMCefZHqfNaYLmC';
+                const mode = document.getElementById('mode-select').value;
+                const model = modelConfigs[mode];
+
+                client = createDecartClient({ apiKey });
+
+                realtimeClient = await client.realtime.connect(currentStream, {
+                    model: model,
+                    onRemoteStream: (transformedStream) => {
+                        videoOutput.srcObject = transformedStream;
+                        videoOutput.onloadedmetadata = () => {
+                            videoOutput.play();
+                            updateStatus('Connected - Live AI Active');
+                        };
+                    },
+                    initialState: {
+                        prompt: { text: document.getElementById('prompt-input').value, enhance: true }
+                    }
+                });
+
+                // Set up event handlers
+                realtimeClient.on("connectionChange", (state) => {
+                    console.log('Connection state:', state);
+                    if (state === 'connected') {
+                        updateStatus('Connected - Live AI Active');
+                    } else if (state === 'disconnected') {
+                        updateStatus('Disconnected');
+                        connectBtn.disabled = false;
+                    }
+                });
+
+                realtimeClient.on("error", (error) => {
+                    console.error("SDK error:", error.code, error.message);
+                    showError('SDK Error: ' + error.message);
+                });
+
+                updateStatus('Connected - Live AI Active');
+            } catch (err) {
+                console.error('Connection error:', err);
+                showError('Connection failed: ' + err.message);
+                connectBtn.disabled = false;
+            }
+        };
+
+        window.applyPrompt = function() {
+            if (realtimeClient) {
+                const prompt = document.getElementById('prompt-input').value;
+                realtimeClient.setPrompt(prompt);
+                updateStatus('Prompt applied: ' + prompt);
+            } else {
+                showError('Not connected to DecartAI');
+            }
+        };
+
+        window.applyQuickPrompt = function(prompt) {
+            document.getElementById('prompt-input').value = prompt;
+            window.applyPrompt();
+        };
+
+        window.stopConnection = function() {
+            if (realtimeClient) {
+                realtimeClient.disconnect();
+                realtimeClient = null;
+                updateStatus('Stopped');
+                connectBtn.disabled = false;
+            }
+        };
+
+        function updateStatus(message) {
+            statusEl.textContent = message;
+        }
+
+        function showError(message) {
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+
+        // Initialize camera on load
+        initCamera();
+    </script>
+</body>
+</html>

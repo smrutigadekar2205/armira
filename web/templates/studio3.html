@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Studio - ARmira</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .studio-container {
+            height: calc(100vh - 80px);
+        }
+        .ar-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -40%);
+            width: 45%;
+            pointer-events: none;
+            opacity: 0.85;
+            transition: all 0.5s ease;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+        }
+        .scan-effect {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent 0%, rgba(99, 102, 241, 0.1) 50%, transparent 100%);
+            background-size: 100% 200%;
+            animation: scan-move 3s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scan-move {
+            0% { background-position: 0% -100%; }
+            100% { background-position: 0% 100%; }
+        }
+        .garment-thumb {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .garment-thumb.active {
+            border-color: #6366f1;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+        }
+        .prompt-chip {
+            transition: all 0.2s ease;
+        }
+        .prompt-chip:hover {
+            transform: translateY(-2px);
+        }
+        .prompt-chip.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white overflow-hidden">
+    <!-- Navbar -->
+    <nav class="navbar-modern">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <div class="navbar-logo">
+                <i data-lucide="shirt" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
+        </a>
+        
+        <div class="navbar-links">
+            <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
+            <a href="{{ url_for('about') }}" class="navbar-link">About</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
+        </div>
+
+        <div class="ml-auto flex items-center gap-4">
+            <span id="connection-status" class="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-black uppercase rounded-full border border-yellow-500/30">Connecting...</span>
+            <div class="w-8 h-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400">
+                <i data-lucide="user" class="w-4 h-4"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="studio-container flex pt-20">
+        <!-- Left Sidebar: Controls -->
+        <div class="w-96 border-r border-white/10 p-6 flex flex-col gap-6 bg-slate-900/50 backdrop-blur-xl relative z-40 overflow-y-auto">
+            <!-- AI Mode Selection -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">AI Mode</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <button data-mode="mirage" id="btn-mirage" class="mode-btn flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                            <i data-lucide="palette" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-sm">Mirage</div>
+                            <div class="text-[10px] text-slate-400">Style Transformation</div>
+                        </div>
+                    </button>
+                    <button data-mode="lucy" id="btn-lucy" class="mode-btn active flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                            <i data-lucide="wand-2" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-sm">Lucy</div>
+                            <div class="text-[10px] text-slate-400">Video Editing</div>
+                        </div>
+                    </button>
+                    <button data-mode="avatar" id="btn-avatar" class="mode-btn flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                            <i data-lucide="user-circle" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-sm">Avatar Live</div>
+                            <div class="text-[10px] text-slate-400">Talking Avatars</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Prompt Input -->
+            <div id="prompt-section">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
+                    <span id="prompt-label">Style Prompt</span>
+                </h3>
+                <div class="space-y-3">
+                    <textarea id="prompt-input" 
+                              class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+                              rows="3"
+                              placeholder="Enter your prompt...">Anime style</textarea>
+                    
+                    <!-- Quick Prompts -->
+                    <div id="quick-prompts" class="flex flex-wrap gap-2">
+                        <button data-prompt="Anime style" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Anime style</button>
+                        <button data-prompt="Cyberpunk city" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Cyberpunk city</button>
+                        <button data-prompt="Studio Ghibli animation" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Studio Ghibli</button>
+                        <button data-prompt="Vintage film" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Vintage film</button>
+                        <button data-prompt="Oil painting" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Oil painting</button>
+                        <button data-prompt="Neon synthwave" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">Neon synthwave</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar Controls (Hidden by default) -->
+            <div id="avatar-controls" class="hidden">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Avatar Controls</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Avatar Image</label>
+                        <input type="file" id="avatar-upload" accept="image/*" 
+                               class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:text-xs file:cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-2">Audio Input</label>
+                        <button data-action="toggle-audio" id="audio-btn" class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-sm hover:bg-white/10 flex items-center justify-center gap-2">
+                            <i data-lucide="mic" class="w-4 h-4"></i>
+                            <span>Start Microphone</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-auto space-y-3">
+                <button data-action="apply-prompt" id="apply-btn" class="btn-modern btn-primary w-full py-4 rounded-2xl shadow-2xl shadow-indigo-600/20">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    Apply Transformation
+                </button>
+                <button data-action="capture-snapshot" class="btn-modern bg-slate-800 text-white w-full py-4 rounded-2xl hover:bg-slate-700">
+                    <i data-lucide="camera" class="w-5 h-5"></i>
+                    Capture Result
+                </button>
+                <button data-action="stop-realtime" class="btn-modern bg-red-600/20 text-red-400 w-full py-4 rounded-2xl hover:bg-red-600/30">
+                    <i data-lucide="stop-circle" class="w-5 h-5"></i>
+                    Stop Realtime
+                </button>
+                <a href="{{ url_for('select_garments') }}" class="btn-modern bg-slate-800 text-white w-full py-4 rounded-2xl hover:bg-slate-700">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Exit Studio
+                </a>
+            </div>
+        </div>
+
+        <!-- Center: Video Feed -->
+        <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+            <!-- Original Video (Hidden, used for input) -->
+            <video id="video-input" class="hidden" autoplay playsinline></video>
+            
+            <!-- Transformed Video Output -->
+            <video id="video-output" class="w-full h-full object-cover" autoplay playsinline></video>
+            
+            <div class="scan-effect"></div>
+            
+            <!-- Tracking UI -->
+            <div class="absolute inset-0 pointer-events-none">
+                <div class="absolute top-10 left-10 w-20 h-20 border-t-2 border-l-2 border-indigo-500/50"></div>
+                <div class="absolute top-10 right-10 w-20 h-20 border-t-2 border-r-2 border-indigo-500/50"></div>
+                <div class="absolute bottom-10 left-10 w-20 h-20 border-b-2 border-l-2 border-indigo-500/50"></div>
+                <div class="absolute bottom-10 right-10 w-20 h-20 border-b-2 border-r-2 border-indigo-500/50"></div>
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="loading-mask" class="absolute inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center">
+                <div class="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-indigo-400 font-bold tracking-widest uppercase text-sm">Initializing AI Studio...</p>
+                <p class="text-slate-500 text-xs mt-2">Loading DecartAI Realtime SDK</p>
+            </div>
+
+            <!-- Model info overlay -->
+            <div class="absolute top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-slate-900/80 backdrop-blur-xl rounded-full border border-white/10 flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span id="model-name" class="text-sm font-bold">Mirage v2</span>
+                <span class="text-slate-500">|</span>
+                <span id="fps-display" class="text-xs text-slate-400">-- FPS</span>
+            </div>
+        </div>
+
+        <!-- Right: Product Details -->
+        <div class="w-80 border-l border-white/10 bg-slate-900/50 backdrop-blur-xl p-6 flex flex-col gap-6 overflow-y-auto z-40">
+            <div>
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Studio Info</h3>
+                <div class="space-y-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-white leading-tight">AI Studio 3</h2>
+                        <p class="text-indigo-400 font-bold mt-1">Real-time Transformations</p>
+                    </div>
+                    
+                    <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-2">Current Mode</div>
+                        <div id="current-mode-display" class="text-sm font-semibold text-white">Mirage - Style Transformation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Garment Preview (Optional - for future integration) -->
+            <div id="garment-section" class="hidden">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Garment Preview</h3>
+                <div class="aspect-[3/4] rounded-2xl overflow-hidden bg-slate-800">
+                    <img id="garment-preview" src="" 
+                         class="w-full h-full object-cover"
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-slate-600\'><i data-lucide=\'image\' class=\'w-8 h-8\'></i></div>'">
+                </div>
+            </div>
+
+            <!-- AI Info -->
+            <div class="mt-auto">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">AI Information</h3>
+                <div class="space-y-3">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Current Model</div>
+                        <div id="current-model-info" class="text-sm font-semibold text-white">Mirage v2 - Style Transformation</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">Resolution</div>
+                        <div id="resolution-info" class="text-sm font-semibold text-white">512 x 512</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-1">API Status</div>
+                        <div id="api-status" class="text-sm font-semibold text-yellow-400">Connecting...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // Import from esm.sh CDN (handles dependency resolution)
+        import { createDecartClient, models } from 'https://esm.sh/@decartai/sdk@0.0.41';
+
+        // Global state
+        let currentMode = 'lucy';
+        let client = null;
+        let realtimeClient = null;
+        let audioStream = null;
+        let isAudioActive = false;
+
+        // DOM Elements
+        const videoInput = document.getElementById('video-input');
+        const videoOutput = document.getElementById('video-output');
+        const loadingMask = document.getElementById('loading-mask');
+        const connectionStatus = document.getElementById('connection-status');
+        const modelNameDisplay = document.getElementById('model-name');
+        const fpsDisplay = document.getElementById('fps-display');
+        const promptInput = document.getElementById('prompt-input');
+        const promptLabel = document.getElementById('prompt-label');
+        const quickPrompts = document.getElementById('quick-prompts');
+        const avatarControls = document.getElementById('avatar-controls');
+        const currentModelInfo = document.getElementById('current-model-info');
+
+        // Model configurations - Using correct model names from ref.md
+        const modelConfigs = {
+            mirage: {
+                model: models.realtime('mirage_v2'),
+                name: 'Mirage v2',
+                description: 'Style Transformation',
+                quickPrompts: ['Anime style', 'Cyberpunk city', 'Studio Ghibli animation', 'Vintage film', 'Oil painting', 'Neon synthwave', 'Impressionist painting', 'Watercolor art']
+            },
+            lucy: {
+                model: models.realtime('lucy_v2v_720p_rt'),
+                name: 'Lucy 2',
+                description: 'Video Editing',
+                quickPrompts: ['Add a dog', 'Change hair to blonde', 'Remove the car', 'Add sunglasses', 'Change shirt color to red', 'Replace background with beach', 'Add snow falling', 'Change day to night']
+            },
+            avatar: {
+                model: models.realtime('live_avatar'),
+                name: 'Avatar Live',
+                description: 'Talking Avatars',
+                quickPrompts: ['Smile warmly', 'Nod while speaking', 'Look enthusiastic', 'Wink playfully', 'Raise eyebrows', 'Tilt head slightly', 'Look surprised', 'Show excitement']
+            }
+        };
+
+        // Initialize camera
+        async function initCamera() {
+            try {
+                // Stop any existing streams first
+                if (videoInput.srcObject) {
+                    videoInput.srcObject.getTracks().forEach(track => track.stop());
+                }
+                
+                const config = modelConfigs[currentMode];
+                console.log('Getting camera for model:', config.model.name, 'fps:', config.model.fps, 'size:', config.model.width, 'x', config.model.height);
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        frameRate: config.model.fps,
+                        width: config.model.width,
+                        height: config.model.height
+                    }
+                });
+                console.log('Camera stream obtained:', stream.id);
+                videoInput.srcObject = stream;
+                await videoInput.play();
+                
+                // Initialize DecartAI client
+                await initDecartClient();
+            } catch (err) {
+                console.error("Camera error:", err);
+                alert("Please enable camera access to use the AR Studio.");
+                loadingMask.style.display = 'none';
+            }
+        }
+
+        // Initialize DecartAI client
+        async function initDecartClient() {
+            try {
+                // Hardcoded API key for testing
+                const apiKey = 'maa_UkhMLQDNBlAFdgKeIZFuKDyknWSncIwPUeobLYuCbRbJDKKVRvSsMFcKgJMSkIWT';
+
+                console.log('Initializing DecartAI client with model:', modelConfigs[currentMode].model.name);
+                console.log('Using API key:', apiKey.substring(0, 10) + '...');
+                
+                // Always create a fresh client
+                client = createDecartClient({ apiKey });
+                await connectRealtime();
+            } catch (err) {
+                console.error("DecartAI initialization error:", err);
+                alert('Failed to initialize DecartAI: ' + err.message);
+                loadingMask.style.display = 'none';
+            }
+        }
+
+        // Connect to realtime API
+        async function connectRealtime() {
+            try {
+                // Disconnect any existing realtime client first
+                if (realtimeClient) {
+                    console.log('Disconnecting previous realtime client...');
+                    realtimeClient.disconnect();
+                    realtimeClient = null;
+                }
+
+                const config = modelConfigs[currentMode];
+                const stream = videoInput.srcObject;
+                const promptText = promptInput.value || 'subtle enhancement';
+                
+                console.log('Connecting to realtime API...');
+                console.log('  Model:', config.model.name);
+                console.log('  Prompt:', promptText);
+                console.log('  Stream:', stream ? 'OK' : 'MISSING');
+                
+                realtimeClient = await client.realtime.connect(stream, {
+                    model: config.model,
+                    prompt: promptText,
+                    onRemoteStream: (transformedStream) => {
+                        console.log('Remote stream received');
+                        videoOutput.srcObject = transformedStream;
+                        videoOutput.onloadedmetadata = () => {
+                            videoOutput.play();
+                            loadingMask.style.opacity = '0';
+                            setTimeout(() => loadingMask.style.display = 'none', 500);
+                            updateConnectionStatus('connected');
+                        };
+                    }
+                });
+
+                // Set up event handlers
+                realtimeClient.on("connectionChange", (state) => {
+                    console.log('Connection state:', state);
+                    updateConnectionStatus(state);
+                });
+
+                realtimeClient.on("error", (error) => {
+                    console.error("SDK error:", error.code, error.message, error);
+                    updateConnectionStatus('disconnected');
+                });
+
+                updateModelInfo();
+                console.log('Realtime client created successfully');
+            } catch (err) {
+                console.error("Realtime connection error:", err);
+                alert('Failed to connect to realtime API: ' + err.message);
+                loadingMask.style.display = 'none';
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(status) {
+            if (status === 'connected') {
+                connectionStatus.className = 'px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-black uppercase rounded-full border border-green-500/30';
+                connectionStatus.textContent = 'Live AI Active';
+                document.getElementById('api-status').textContent = 'Connected';
+                document.getElementById('api-status').className = 'text-sm font-semibold text-green-400';
+            } else if (status === 'disconnected') {
+                connectionStatus.className = 'px-3 py-1 bg-red-500/20 text-red-400 text-[10px] font-black uppercase rounded-full border border-red-500/30';
+                connectionStatus.textContent = 'Disconnected';
+                document.getElementById('api-status').textContent = 'Disconnected';
+                document.getElementById('api-status').className = 'text-sm font-semibold text-red-400';
+            } else {
+                connectionStatus.className = 'px-3 py-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-black uppercase rounded-full border border-yellow-500/30';
+                connectionStatus.textContent = 'Connecting...';
+                document.getElementById('api-status').textContent = 'Connecting...';
+                document.getElementById('api-status').className = 'text-sm font-semibold text-yellow-400';
+            }
+        }
+
+        // Update model info display
+        function updateModelInfo() {
+            const config = modelConfigs[currentMode];
+            modelNameDisplay.textContent = config.name;
+            currentModelInfo.textContent = `${config.name} - ${config.description}`;
+            document.getElementById('current-mode-display').textContent = `${config.name} - ${config.description}`;
+            document.getElementById('resolution-info').textContent = `${config.model.width} x ${config.model.height}`;
+        }
+
+        // Set AI mode
+        window.setMode = function(mode) {
+            if (mode === currentMode) return;
+
+            // Update UI
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+
+            // Stop existing connection
+            if (realtimeClient) {
+                realtimeClient.disconnect();
+                realtimeClient = null;
+            }
+
+            currentMode = mode;
+
+            // Update prompts based on mode
+            updateQuickPrompts();
+
+            // Show/hide avatar controls
+            if (mode === 'avatar') {
+                avatarControls.classList.remove('hidden');
+                promptLabel.textContent = 'Expression Prompt';
+            } else {
+                avatarControls.classList.add('hidden');
+                promptLabel.textContent = mode === 'mirage' ? 'Style Prompt' : 'Edit Prompt';
+            }
+
+            // Reconnect with new model
+            loadingMask.style.display = 'flex';
+            loadingMask.style.opacity = '1';
+            initCamera();
+        };
+
+        // Update quick prompts based on mode
+        function updateQuickPrompts() {
+            const config = modelConfigs[currentMode];
+            quickPrompts.innerHTML = config.quickPrompts.map(prompt => 
+                `<button data-prompt="${prompt}" class="prompt-chip px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs hover:bg-white/10">${prompt}</button>`
+            ).join('');
+            
+            // Re-attach event listeners to new prompt buttons
+            document.querySelectorAll('#quick-prompts button').forEach(btn => {
+                btn.addEventListener('click', () => applyPrompt(btn.dataset.prompt));
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Mode buttons
+            document.querySelectorAll('[data-mode]').forEach(btn => {
+                btn.addEventListener('click', () => setMode(btn.dataset.mode));
+            });
+            
+            // Quick prompt buttons
+            document.querySelectorAll('#quick-prompts button').forEach(btn => {
+                btn.addEventListener('click', () => applyPrompt(btn.dataset.prompt));
+            });
+            
+            // Action buttons
+            document.querySelector('[data-action="apply-prompt"]')?.addEventListener('click', () => applyPrompt());
+            document.querySelector('[data-action="capture-snapshot"]')?.addEventListener('click', captureSnapshot);
+            document.querySelector('[data-action="stop-realtime"]')?.addEventListener('click', stopRealtime);
+            document.querySelector('[data-action="toggle-audio"]')?.addEventListener('click', toggleAudio);
+        }
+
+        // Apply prompt
+        window.applyPrompt = function(prompt) {
+            if (prompt) {
+                promptInput.value = prompt;
+            }
+
+            if (realtimeClient) {
+                realtimeClient.setPrompt(promptInput.value);
+                
+                // Visual feedback
+                const btn = document.getElementById('apply-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i> Applied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    lucide.createIcons();
+                }, 1500);
+            }
+        };
+
+        // Toggle audio for Avatar Live
+        window.toggleAudio = async function() {
+            const btn = document.getElementById('audio-btn');
+            
+            if (!isAudioActive) {
+                try {
+                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    isAudioActive = true;
+                    btn.innerHTML = '<i data-lucide="mic-off" class="w-4 h-4"></i><span>Stop Microphone</span>';
+                    btn.classList.add('bg-red-600/20', 'border-red-500/30');
+                    
+                    if (realtimeClient && currentMode === 'avatar') {
+                        realtimeClient.setAudioStream(audioStream);
+                    }
+                } catch (err) {
+                    console.error("Audio error:", err);
+                    alert("Could not access microphone.");
+                }
+            } else {
+                if (audioStream) {
+                    audioStream.getTracks().forEach(track => track.stop());
+                    audioStream = null;
+                }
+                isAudioActive = false;
+                btn.innerHTML = '<i data-lucide="mic" class="w-4 h-4"></i><span>Start Microphone</span>';
+                btn.classList.remove('bg-red-600/20', 'border-red-500/30');
+                
+                if (realtimeClient && currentMode === 'avatar') {
+                    realtimeClient.setAudioStream(null);
+                }
+            }
+        };
+
+        // Stop realtime
+        window.stopRealtime = function() {
+            if (realtimeClient) {
+                realtimeClient.disconnect();
+                realtimeClient = null;
+                updateConnectionStatus('disconnected');
+            }
+            
+            if (videoInput.srcObject) {
+                videoInput.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            if (videoOutput.srcObject) {
+                videoOutput.srcObject.getTracks().forEach(track => track.stop());
+            }
+        };
+
+        // Capture snapshot
+        window.captureSnapshot = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = videoOutput.videoWidth || 1280;
+            canvas.height = videoOutput.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.drawImage(videoOutput, 0, 0);
+            
+            // Add watermark
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.8)';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText('ARmira AI Studio', 20, canvas.height - 20);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `armira-${currentMode}-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        };
+
+        // Avatar upload handler
+        document.getElementById('avatar-upload')?.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (file && realtimeClient && currentMode === 'avatar') {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    await realtimeClient.setImage(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Initialize on load
+        lucide.createIcons();
+        setupEventListeners();
+        initCamera();
+    </script>
+</body>
+</html>
