@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Try-On - ARmira</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style Overrides -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--brand-primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="hero-gradient min-h-screen">
+    <!-- Navbar -->
+    <nav class="navbar-modern">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
+            <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
+        </a>
+        
+        <div class="navbar-links">
+            <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
+            <a href="{{ url_for('about') }}" class="navbar-link">About</a>
+            <a href="{{ url_for('demo') }}" class="navbar-link active">Studio</a>
+            <a href="{{ url_for('studio2') }}" class="navbar-link">Studio 2 (AR)</a>
+            {% if studio3_visible %}
+            <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
+            {% endif %}
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link">Settings</a>
+        </div>
+
+        <div class="ml-auto flex items-center gap-4">
+            <div class="w-9 h-9 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400">
+                <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-32 pb-20">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <!-- Left Side: User Setup -->
+            <div class="lg:col-span-7 space-y-10">
+                <div class="card-modern">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
+                            <i data-lucide="user-check" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Step 1: Your Profile</h2>
+                            <p class="text-slate-500">Capture your frame to calibrate the AI engine.</p>
+                        </div>
+                    </div>
+
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl mb-6 text-sm">
+                                {% for message in messages %}
+                                    <p class="flex items-center gap-2"><i data-lucide="alert-circle" class="w-4 h-4"></i> {{ message }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('upload_user') }}" method="post" enctype="multipart/form-data" id="user-upload-form" onsubmit="showUserLoader()">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <div class="p-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-indigo-300 transition-all group relative">
+                                <input type="file" name="user_image" id="user_image" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
+                                <div class="text-center">
+                                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                        <i data-lucide="upload-cloud" class="text-slate-400"></i>
+                                    </div>
+                                    <p class="font-semibold text-slate-700">Upload Image</p>
+                                    <p class="text-xs text-slate-400 mt-1">PNG, JPG up to 10MB</p>
+                                </div>
+                            </div>
+
+                            <div class="p-6 rounded-3xl border border-slate-100 bg-white shadow-sm flex flex-col items-center justify-center text-center">
+                                <div id="webcam-container" class="hidden relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 mb-4">
+                                    <video id="video" class="w-full h-full object-cover" autoplay></video>
+                                    <canvas id="canvas" class="hidden"></canvas>
+                                    <div id="scan-overlay" class="hidden absolute inset-0 pointer-events-none">
+                                        <div class="scan-line"></div>
+                                        <div class="absolute inset-0 border-2 border-indigo-500/30 rounded-2xl"></div>
+                                    </div>
+                                </div>
+                                <button type="button" id="start-camera" class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 hover:bg-indigo-100 transition-colors">
+                                    <i data-lucide="camera"></i>
+                                </button>
+                                <p class="font-semibold text-slate-700">Use Webcam</p>
+                                <button type="button" id="capture-btn" class="hidden mt-4 text-xs font-bold text-indigo-600 uppercase tracking-widest hover:text-indigo-700">Capture Now</button>
+                                <input type="hidden" name="webcam_image" id="webcam_image">
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest">Biometric Data (Optional)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Height (cm)</label>
+                                    <input type="number" name="height_cm" placeholder="e.g. 175" class="form-input">
+                                </div>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="col-span-1">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-2">Chest</label>
+                                        <input type="number" name="u_chest_cm" class="form-input">
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-2">Waist</label>
+                                        <input type="number" name="u_waist_cm" class="form-input">
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-2">Hip</label>
+                                        <input type="number" name="u_hip_cm" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 flex items-center justify-between">
+                            <div id="user-loader" class="hidden flex items-center gap-3">
+                                <div class="loader"></div>
+                                <span class="text-sm font-medium text-indigo-600">Analyzing body geometry...</span>
+                            </div>
+                            <button type="submit" id="user-submit-btn" class="btn-modern btn-primary w-full md:w-auto ml-auto">
+                                Next: Select Style
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Side: Add Garment -->
+            <div class="lg:col-span-5">
+                <div class="card-modern border-indigo-100 bg-indigo-50/20">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+                            <i data-lucide="plus-square" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Add to Wardrobe</h2>
+                            <p class="text-slate-500 text-sm">Upload new items to your personal library.</p>
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('upload_garment') }}" method="post" enctype="multipart/form-data" class="space-y-6">
+                        <div class="p-8 rounded-3xl border-2 border-dashed border-indigo-200 bg-white hover:border-indigo-400 transition-all group relative text-center">
+                            <input type="file" name="garment_image" id="garment_image" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" required>
+                            <i data-lucide="image-plus" class="w-10 h-10 text-indigo-300 mx-auto mb-3 group-hover:scale-110 transition-transform"></i>
+                            <p class="text-sm font-bold text-slate-700">Drop item photo</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Category</label>
+                                <select name="category" class="form-input bg-white text-sm">
+                                    <option value="Tops">Tops</option>
+                                    <option value="Bottoms">Bottoms</option>
+                                    <option value="Dresses">Dresses</option>
+                                    <option value="Outerwear">Outerwear</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Size Type</label>
+                                <div class="flex bg-white rounded-xl p-1 border border-slate-200">
+                                    <button type="button" onclick="setSizing('std')" id="btn-std" class="flex-1 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white transition-all">Standard</button>
+                                    <button type="button" onclick="setSizing('custom')" id="btn-custom" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 transition-all">Custom</button>
+                                </div>
+                                <input type="hidden" name="size_type" id="size_type_input" value="standard">
+                            </div>
+                        </div>
+
+                        <div id="sizing-std-input">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Size Label</label>
+                            <input type="text" name="size" placeholder="M" class="form-input bg-white">
+                        </div>
+
+                        <div id="sizing-custom-input" class="hidden grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Chest</label>
+                                <input type="number" name="g_chest_cm" class="form-input bg-white text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Waist</label>
+                                <input type="number" name="g_waist_cm" class="form-input bg-white text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Length</label>
+                                <input type="number" name="g_length_cm" class="form-input bg-white text-sm">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-modern bg-slate-900 text-white w-full justify-center mt-4">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Add to Library
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function showUserLoader() {
+            document.getElementById('user-loader').classList.remove('hidden');
+            document.getElementById('user-submit-btn').classList.add('hidden');
+        }
+
+        function setSizing(type) {
+            const isStd = type === 'std';
+            document.getElementById('size_type_input').value = isStd ? 'standard' : 'custom';
+            
+            // UI Toggle
+            const btnStd = document.getElementById('btn-std');
+            const btnCustom = document.getElementById('btn-custom');
+            
+            if(isStd) {
+                btnStd.classList.add('bg-indigo-600', 'text-white');
+                btnStd.classList.remove('text-slate-500');
+                btnCustom.classList.remove('bg-indigo-600', 'text-white');
+                btnCustom.classList.add('text-slate-500');
+                document.getElementById('sizing-std-input').classList.remove('hidden');
+                document.getElementById('sizing-custom-input').classList.add('hidden');
+            } else {
+                btnCustom.classList.add('bg-indigo-600', 'text-white');
+                btnCustom.classList.remove('text-slate-500');
+                btnStd.classList.remove('bg-indigo-600', 'text-white');
+                btnStd.classList.add('text-slate-500');
+                document.getElementById('sizing-std-input').classList.add('hidden');
+                document.getElementById('sizing-custom-input').classList.remove('hidden');
+            }
+        }
+
+        // Camera Logic
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('start-camera');
+        const captureBtn = document.getElementById('capture-btn');
+        const webcamContainer = document.getElementById('webcam-container');
+        const webcamInput = document.getElementById('webcam_image');
+        const fileInput = document.getElementById('user_image');
+        const scanOverlay = document.getElementById('scan-overlay');
+        const userForm = document.getElementById('user-upload-form');
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                webcamContainer.classList.remove('hidden');
+                captureBtn.classList.remove('hidden');
+                scanOverlay.classList.remove('hidden');
+                startBtn.classList.add('hidden');
+            } catch (err) {
+                console.error("Webcam error:", err);
+                alert("Please enable camera access.");
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/jpeg');
+            webcamInput.value = dataURL;
+            
+            video.pause();
+            scanOverlay.classList.add('hidden');
+            captureBtn.textContent = 'Retake';
+            captureBtn.onclick = () => location.reload();
+        });
+
+        // Ensure Add to Wardrobe doesn't interfere with Step 1
+        document.querySelector('form[action="/upload_garment"]').addEventListener('submit', function(e) {
+            const file = document.getElementById('garment_image').files[0];
+            if(!file) {
+                e.preventDefault();
+                alert("Please select a garment image first.");
+            }
+        });
+    </script>
+</body>
+</html>

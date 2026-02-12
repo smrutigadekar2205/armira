@@ -1,0 +1,81 @@
+{
+    "white_tshirt_m.jpg": {
+        "size_type": "custom",
+        "category": "Tops",
+        "size": "M",
+        "uploaded_at": 1769706204.9953897,
+        "price": "$43.00",
+        "material": "Premium Modal",
+        "measurements": {
+            "chest": 97,
+            "waist": 78,
+            "length": 72
+        }
+    },
+    "black_tshirt_m.jpg": {
+        "size_type": "standard",
+        "category": "Tops",
+        "size": "M",
+        "uploaded_at": 1769706204.995404,
+        "price": "$47.00",
+        "material": "100% Cotton"
+    },
+    "striped_shirt_m.jpg": {
+        "size_type": "standard",
+        "category": "Tops",
+        "size": "M",
+        "uploaded_at": 1769706204.9954078,
+        "price": "$73.00",
+        "material": "100% Cotton"
+    },
+    "blue_jeans_32.jpg": {
+        "size_type": "custom",
+        "category": "Bottoms",
+        "size": "M",
+        "uploaded_at": 1769706204.9954216,
+        "price": "$98.00",
+        "material": "Canvas",
+        "measurements": {
+            "chest": 96,
+            "waist": 77,
+            "length": 74
+        }
+    },
+    "black_chinos_32.jpg": {
+        "size_type": "standard",
+        "category": "Bottoms",
+        "size": "M",
+        "uploaded_at": 1769706204.9954302,
+        "price": "$93.00",
+        "material": "Cotton Twill"
+    },
+    "floral_dress_m.jpg": {
+        "size_type": "standard",
+        "category": "Dresses",
+        "size": "M",
+        "uploaded_at": 1769706204.995439,
+        "price": "$60.00",
+        "material": "Cotton Poplin"
+    },
+    "little_black_dress_m.jpg": {
+        "size_type": "custom",
+        "category": "Dresses",
+        "size": "M",
+        "uploaded_at": 1769706204.9954417,
+        "price": "$65.00",
+        "material": "Viscose",
+        "measurements": {
+            "chest": 93,
+            "waist": 83,
+            "length": 74
+        }
+    },
+    "denim_jacket_m.jpg": {
+        "size_type": "standard",
+        "category": "Outerwear",
+        "size": "M",
+        "uploaded_at": 1769706204.9954488,
+        "price": "$236.00",
+        "material": "Wool Blend"
+    }
+}

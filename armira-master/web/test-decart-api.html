@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DecartAI API Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #60a5fa; margin-bottom: 0.5rem; }
+        h2 { color: #94a3b8; font-size: 1rem; margin-top: 0; }
+        .section {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #60a5fa;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+        label { display: block; margin-bottom: 0.5rem; color: #94a3b8; }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #0f172a;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        button.secondary { background: #475569; }
+        button.secondary:hover { background: #64748b; }
+        button.danger { background: #dc2626; }
+        button.danger:hover { background: #b91c1c; }
+        .log {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .log-entry { margin-bottom: 0.5rem; }
+        .log-entry.error { color: #f87171; }
+        .log-entry.success { color: #4ade80; }
+        .log-entry.info { color: #60a5fa; }
+        .log-entry.warn { color: #fbbf24; }
+        .video-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        video {
+            background: #000;
+            border-radius: 8px;
+            max-width: 100%;
+        }
+        .model-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .model-item {
+            background: #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .model-item code {
+            color: #4ade80;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        .status.connected { background: #166534; color: #4ade80; }
+        .status.disconnected { background: #7f1d1d; color: #f87171; }
+        .status.connecting { background: #854d0e; color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>DecartAI API Test</h1>
+    <h2>Test realtime models and verify API connectivity</h2>
+
+    <!-- API Key Section -->
+    <div class="section">
+        <h3>API Configuration</h3>
+        <label for="apiKey">DecartAI API Key</label>
+        <input type="password" id="apiKey" placeholder="Enter your API key" value="maa_UkhMLQDNBlAFdgKeIZFuKDyknWSncIwPUeobLYuCbRbJDKKVRvSsMFcKgJMSkIWT">
+        <button onclick="saveApiKey()">Save to LocalStorage</button>
+        <button class="secondary" onclick="loadApiKey()">Load from LocalStorage</button>
+    </div>
+
+    <!-- Available Models Reference -->
+    <div class="section">
+        <h3>Available Realtime Models</h3>
+        <p style="color: #94a3b8; margin-bottom: 1rem;">These are the valid model names from the SDK:</p>
+        <div class="model-list">
+            <div class="model-item"><code>mirage</code> - 25fps, 1280x704</div>
+            <div class="model-item"><code>mirage_v2</code> - 22fps, 1280x704</div>
+            <div class="model-item"><code>lucy_v2v_720p_rt</code> - 25fps, 1280x704</div>
+            <div class="model-item"><code>lucy_2_rt</code> - 20fps, 1280x720</div>
+            <div class="model-item"><code>live_avatar</code> - 25fps, 1280x720</div>
+        </div>
+        <p style="color: #fbbf24; font-size: 0.85rem;">⚠️ Note: <code>avatar_live</code> is INVALID. Use <code>live_avatar</code> instead!</p>
+    </div>
+
+    <!-- Realtime Test Section -->
+    <div class="section">
+        <h3>Realtime API Test <span id="connectionStatus" class="status disconnected">Disconnected</span></h3>
+        
+        <label for="modelSelect">Select Model</label>
+        <select id="modelSelect">
+            <option value="mirage">mirage</option>
+            <option value="mirage_v2">mirage_v2</option>
+            <option value="lucy_v2v_720p_rt" selected>lucy_v2v_720p_rt</option>
+            <option value="lucy_2_rt">lucy_2_rt</option>
+            <option value="live_avatar">live_avatar</option>
+        </select>
+
+        <label for="prompt">Prompt</label>
+        <input type="text" id="prompt" value="Change shirt to red" placeholder="Enter transformation prompt">
+
+        <button id="connectBtn" onclick="connectRealtime()">Connect & Start Camera</button>
+        <button class="secondary" onclick="updatePrompt()">Update Prompt</button>
+        <button class="danger" onclick="disconnectRealtime()">Disconnect</button>
+
+        <div class="video-container" style="margin-top: 1rem;">
+            <div>
+                <p style="color: #94a3b8; margin-bottom: 0.5rem;">Input (Camera)</p>
+                <video id="inputVideo" width="400" autoplay muted playsinline></video>
+            </div>
+            <div>
+                <p style="color: #94a3b8; margin-bottom: 0.5rem;">Output (Transformed)</p>
+                <video id="outputVideo" width="400" autoplay playsinline></video>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Section -->
+    <div class="section">
+        <h3>Event Log</h3>
+        <button class="secondary" onclick="clearLog()">Clear Log</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script type="module">
+        import { createDecartClient, models } from 'https://esm.sh/@decartai/sdk@0.0.41';
+
+        let client = null;
+        let realtimeClient = null;
+        let mediaStream = null;
+
+        // Expose functions to window
+        window.saveApiKey = function() {
+            const apiKey = document.getElementById('apiKey').value;
+            if (apiKey) {
+                localStorage.setItem('decart_api_key', apiKey);
+                log('API key saved to localStorage', 'success');
+            }
+        };
+
+        window.loadApiKey = function() {
+            const apiKey = localStorage.getItem('decart_api_key');
+            if (apiKey) {
+                document.getElementById('apiKey').value = apiKey;
+                log('API key loaded from localStorage', 'success');
+            } else {
+                log('No API key found in localStorage', 'warn');
+            }
+        };
+
+        window.clearLog = function() {
+            document.getElementById('log').innerHTML = '';
+        };
+
+        window.connectRealtime = async function() {
+            const apiKey = document.getElementById('apiKey').value;
+            if (!apiKey) {
+                log('Please enter an API key first', 'error');
+                return;
+            }
+
+            const modelName = document.getElementById('modelSelect').value;
+            const prompt = document.getElementById('prompt').value;
+
+            try {
+                log(`Initializing with model: ${modelName}`, 'info');
+                updateStatus('connecting');
+
+                // Get model definition
+                let model;
+                try {
+                    model = models.realtime(modelName);
+                    log(`Model loaded: ${model.name}, ${model.fps}fps, ${model.width}x${model.height}`, 'success');
+                } catch (e) {
+                    log(`Model error: ${e.message}`, 'error');
+                    log('Valid models: mirage, mirage_v2, lucy_v2v_720p_rt, lucy_2_rt, live_avatar', 'warn');
+                    updateStatus('disconnected');
+                    return;
+                }
+
+                // Get camera stream
+                log('Requesting camera access...', 'info');
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: modelName === 'live_avatar',
+                    video: {
+                        frameRate: model.fps,
+                        width: model.width,
+                        height: model.height
+                    }
+                });
+                log('Camera access granted', 'success');
+
+                document.getElementById('inputVideo').srcObject = mediaStream;
+
+                // Create client
+                log('Creating DecartAI client...', 'info');
+                client = createDecartClient({ apiKey });
+
+                // Connect to realtime
+                log('Connecting to realtime API...', 'info');
+                realtimeClient = await client.realtime.connect(mediaStream, {
+                    model,
+                    prompt,
+                    onRemoteStream: (stream) => {
+                        log('Remote stream received!', 'success');
+                        document.getElementById('outputVideo').srcObject = stream;
+                    }
+                });
+
+                // Set up event listeners
+                realtimeClient.on('connectionChange', (state) => {
+                    log(`Connection state: ${state}`, 'info');
+                    if (state === 'connected') {
+                        updateStatus('connected');
+                    } else if (state === 'disconnected') {
+                        updateStatus('disconnected');
+                    }
+                });
+
+                realtimeClient.on('error', (error) => {
+                    log(`Realtime error: ${JSON.stringify(error)}`, 'error');
+                });
+
+                log('Realtime connection established!', 'success');
+                updateStatus('connected');
+
+            } catch (error) {
+                log(`Connection failed: ${error.message}`, 'error');
+                if (error.code) {
+                    log(`Error code: ${error.code}`, 'error');
+                }
+                console.error('Full error:', error);
+                updateStatus('disconnected');
+            }
+        };
+
+        window.updatePrompt = function() {
+            if (realtimeClient) {
+                const prompt = document.getElementById('prompt').value;
+                realtimeClient.setPrompt(prompt);
+                log(`Prompt updated: "${prompt}"`, 'success');
+            } else {
+                log('Not connected. Please connect first.', 'warn');
+            }
+        };
+
+        window.disconnectRealtime = function() {
+            if (realtimeClient) {
+                realtimeClient.disconnect();
+                realtimeClient = null;
+                log('Disconnected from realtime API', 'info');
+            }
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+                log('Camera stopped', 'info');
+            }
+            document.getElementById('inputVideo').srcObject = null;
+            document.getElementById('outputVideo').srcObject = null;
+            updateStatus('disconnected');
+        };
+
+        function updateStatus(status) {
+            const el = document.getElementById('connectionStatus');
+            el.className = 'status ' + status;
+            el.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Load API key on page load
+        window.loadApiKey();
+        log('DecartAI API Test initialized', 'info');
+        log('SDK version: @decartai/sdk@0.0.41', 'info');
+    </script>
+</body>
+</html>

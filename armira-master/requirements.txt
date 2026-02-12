@@ -1,0 +1,7 @@
+Flask
+numpy
+opencv-python
+Pillow
+openai
+python-dotenv
+requests

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "openai": "^6.16.0",
+    "@decartai/sdk": "^0.0.41"
+  }
+}
