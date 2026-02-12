@@ -64,13 +64,9 @@
                             API4AI Key
                             <span class="text-xs font-normal text-slate-400 ml-2">(Virtual Try-On API)</span>
                         </label>
-                        <div class="relative">
+                        <div>
                             <input type="text" id="api4ai-key" value="{{ api_keys.api4ai }}" 
-                                   class="form-input pr-24" placeholder="Enter API key or leave blank to use environment variable">
-                            <button type="button" onclick="toggleVisibility('api4ai-key', this)" 
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
-                            </button>
+                                   class="form-input" placeholder="Enter API key or leave blank to use environment variable">
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Get your key from <a href="https://api4ai.cloud/" target="_blank" class="text-indigo-600 hover:underline">api4ai.cloud</a></p>
                     </div>
@@ -81,13 +77,9 @@
                             DecartAI Key
                             <span class="text-xs font-normal text-slate-400 ml-2">(Studio 3 - AI Transformations)</span>
                         </label>
-                        <div class="relative">
+                        <div>
                             <input type="text" id="decart-key" value="{{ api_keys.decart }}" 
-                                   class="form-input pr-24" placeholder="Enter API key or leave blank to use environment variable">
-                            <button type="button" onclick="toggleVisibility('decart-key', this)" 
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
-                            </button>
+                                   class="form-input" placeholder="Enter API key or leave blank to use environment variable">
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Get your key from <a href="https://decart.ai/" target="_blank" class="text-indigo-600 hover:underline">decart.ai</a></p>
                     </div>
@@ -98,13 +90,9 @@
                             Snap Camera Kit Token
                             <span class="text-xs font-normal text-slate-400 ml-2">(Studio 2 - AR Effects)</span>
                         </label>
-                        <div class="relative">
+                        <div>
                             <input type="text" id="snap-key" value="{{ api_keys.snap }}" 
-                                   class="form-input pr-24" placeholder="Enter API token or leave blank to use environment variable">
-                            <button type="button" onclick="toggleVisibility('snap-key', this)" 
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
-                            </button>
+                                   class="form-input" placeholder="Enter API token or leave blank to use environment variable">
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Get your token from <a href="https://kit.snapchat.com/" target="_blank" class="text-indigo-600 hover:underline">kit.snapchat.com</a></p>
                     </div>
@@ -173,31 +161,6 @@
 
     <script>
         lucide.createIcons();
-
-        // Toggle password visibility
-        function toggleVisibility(inputId, button) {
-            const input = document.getElementById(inputId);
-            const icon = button.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.setAttribute('data-lucide', 'eye-off');
-            } else {
-                input.type = 'password';
-                icon.setAttribute('data-lucide', 'eye');
-            }
-            lucide.createIcons();
-        }
-
-        // Initialize inputs as password type
-        document.addEventListener('DOMContentLoaded', function() {
-            ['api4ai-key', 'decart-key', 'snap-key'].forEach(id => {
-                const input = document.getElementById(id);
-                if (input.value && !input.value.startsWith('•')) {
-                    input.type = 'password';
-                }
-            });
-        });
 
         // Save API Keys
         document.getElementById('api-keys-form').addEventListener('submit', async function(e) {

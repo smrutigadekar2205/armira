@@ -410,8 +410,8 @@
         // Initialize DecartAI client
         async function initDecartClient() {
             try {
-                // Hardcoded API key for testing
-                const apiKey = 'maa_UkhMLQDNBlAFdgKeIZFuKDyknWSncIwPUeobLYuCbRbJDKKVRvSsMFcKgJMSkIWT';
+                // API key from settings
+                const apiKey = '{{ api_key }}';
 
                 console.log('Initializing DecartAI client with model:', modelConfigs[currentMode].model.name);
                 console.log('Using API key:', apiKey.substring(0, 10) + '...');

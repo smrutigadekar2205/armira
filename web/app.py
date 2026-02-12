@@ -490,13 +490,8 @@ def remove_garment():
 def settings():
     """API Keys settings page"""
     api_keys = load_api_keys()
-    # Mask keys for display
-    masked_keys = {
-        'api4ai': mask_key(api_keys.get('api4ai', '')),
-        'decart': mask_key(api_keys.get('decart', '')),
-        'snap': mask_key(api_keys.get('snap', ''))
-    }
-    return render_template('settings.html', api_keys=masked_keys, studio3_visible=STUDIO3_VISIBLE)
+    # Pass keys for display (no masking)
+    return render_template('settings.html', api_keys=api_keys, studio3_visible=STUDIO3_VISIBLE)
 
 @app.route('/api/settings/save', methods=['POST'])
 def save_settings():
@@ -506,12 +501,12 @@ def save_settings():
     # Load existing keys
     existing_keys = load_api_keys()
     
-    # Update only provided keys that are not masked
-    if data.get('api4ai') and not data['api4ai'].startswith('•'):
+    # Update all provided keys (no masking check since keys are now displayed in plain text)
+    if data.get('api4ai') is not None:
         existing_keys['api4ai'] = data['api4ai']
-    if data.get('decart') and not data['decart'].startswith('•'):
+    if data.get('decart') is not None:
         existing_keys['decart'] = data['decart']
-    if data.get('snap') and not data['snap'].startswith('•'):
+    if data.get('snap') is not None:
         existing_keys['snap'] = data['snap']
     
     # Save studio3 visibility
