@@ -1,0 +1,197 @@
+\documentclass[conference]{IEEEtran}
+
+% ---------------- Packages ----------------
+\usepackage{amsmath, amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+
+% ---------------- Document ----------------
+\begin{document}
+
+\title{Vision-Language Guided Real-Time Virtual Try-On System}
+
+\author{
+\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{Affiliation\\
+Email}
+}
+
+\maketitle
+
+\begin{abstract}
+This paper presents a real-time virtual try-on system integrating
+vision-language models with generative image synthesis.
+\end{abstract}
+
+\section{Introduction}
+Introduction goes here.
+
+\section{Methodology}
+
+This work proposes a vision-language guided real-time virtual try-on framework that decouples body size understanding from garment rendering. The key idea is to leverage a Vision-Language Model (VLM) to infer structured anthropometric attributes from a single reference image, which are then used for deterministic garment selection prior to real-time virtual try-on synthesis. This separation reduces ambiguity, improves stability, and lowers computational overhead during live inference.
+
+\subsection{System Architecture}
+
+The system consists of three sequential modules: (i) body size inference via a Vision-Language Model, (ii) garment size matching using a structured clothing library, and (iii) real-time virtual try-on rendering using live camera input. The size estimation stage is executed once per user session, while the rendering pipeline operates continuously, enabling efficient real-time performance.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\linewidth]{vton.png}
+    \caption{Fig 1. System overview}
+    \label{fig:system-overview}
+\end{figure}
+
+\subsection{Vision-Language-Based Body Size Inference}
+
+Given a single RGB image of a user, the Vision-Language Model maps visual appearance to semantically meaningful body measurements. The implementation utilizes the OpenRouter API with state-of-the-art multimodal models such as Claude 3.5 Sonnet, which implicitly encode visual priors learned from large-scale multimodal data, enabling coarse but robust estimation without explicit 3D reconstruction.
+
+Formally, the VLM is modeled as a conditional mapping:
+\begin{equation}
+\mathbf{S}_u = f_{\text{VLM}}(I_u \mid P)
+\end{equation}
+
+where $I_u$ denotes the user reference image, $P$ is a constrained prompt, and $\mathbf{S}_u$ is a structured vector of anthropometric attributes.
+
+\subsubsection{Structured Measurement Representation}
+
+To ensure reproducibility and downstream compatibility, VLM output is constrained to a strict JSON schema containing key body measurements such as height, chest, waist, hip, and shoulder width. The system employs explicit prompting techniques to enforce this structured output, preventing semantic drift and enabling deterministic garment matching.
+
+The structured response format is defined as:
+\begin{equation}
+\mathbf{S}_u = \{ \text{shoulder\_width\_cm}, \text{chest\_cm}, \text{waist\_cm}, \text{hip\_width\_cm} \}
+\end{equation}
+
+\subsubsection{Fallback Estimation Mechanism}
+
+To ensure system robustness in scenarios where the VLM fails to provide valid measurements (e.g., API errors, malformed responses, or model refusals), a deterministic fallback mechanism is implemented. This mechanism generates realistic measurements based on optional user-provided height information using anthropometric scaling factors:
+
+\begin{align}
+\text{chest} &= \text{height} \times 0.55 \times \mathcal{U}(0.9, 1.1) \\
+\text{waist} &= \text{height} \times 0.48 \times \mathcal{U}(0.85, 1.15) \\
+\text{hips} &= \text{height} \times 0.58 \times \mathcal{U}(0.9, 1.1) \\
+\text{shoulder} &= \text{height} \times 0.25 \times \mathcal{U}(0.9, 1.1)
+\end{align}
+
+where $\mathcal{U}(a, b)$ denotes a uniform distribution over $[a, b]$, introducing reasonable variability while maintaining anatomical plausibility.
+
+\subsection{Garment Size Matching}
+
+Each garment in the database is represented by a canonical size vector derived from manufacturer specifications or metadata. The garment selection task is formulated as a distance minimization problem in measurement space:
+
+\begin{equation}
+g^* = \arg\min_{g_i \in \mathcal{G}} \; 
+\left\| \mathbf{W} \odot (\mathbf{S}_u - \mathbf{S}_{g_i}) \right\|_1
+\end{equation}
+
+where $\mathbf{W}$ denotes a weight vector reflecting the relative importance of individual body dimensions, and $\odot$ represents element-wise multiplication. The $L_1$ norm is used to reduce sensitivity to outliers in individual measurements.
+
+This explicit matching step ensures that only physically plausible garments are passed to the rendering stage.
+
+\subsubsection{Size Category Classification}
+
+For simplified garment filtering, measurements are mapped to discrete size categories (S, M, L, XL) using threshold-based classification on chest circumference:
+
+\begin{equation}
+\text{size} = 
+\begin{cases}
+\text{S} & \text{if } \text{chest} < 88 \\
+\text{M} & \text{if } 88 \leq \text{chest} < 96 \\
+\text{L} & \text{if } 96 \leq \text{chest} < 104 \\
+\text{XL} & \text{if } \text{chest} \geq 104
+\end{cases}
+\end{equation}
+
+This classification enables both exact size matching and approximate filtering for garments with standard size labels.
+
+\subsection{Real-Time Virtual Try-On Rendering}
+
+Once a garment is selected, the system enters real-time operation using live camera input. The implementation leverages the API4AI Cloud Virtual Try-On API, which provides end-to-end synthesis without requiring local computation of pose estimation or human parsing.
+
+\subsubsection{API-Based Synthesis Pipeline}
+
+The rendering process abstracts the complexity of pose-guided garment alignment and occlusion reasoning through a cloud-based service. Given a target frame $F_t$ and selected garment $g^*$, the synthesis is modeled as:
+
+\begin{equation}
+\hat{F}_t = f_{\text{API4AI}}(F_t, g^*)
+\end{equation}
+
+where $f_{\text{API4AI}}$ represents the cloud-based virtual try-on model that internally handles:
+\begin{itemize}
+    \item Pose estimation for skeletal keypoint extraction
+    \item Human parsing for body region segmentation
+    \item Garment warping guided by pose constraints
+    \item Conditional image synthesis with occlusion-aware blending
+\end{itemize}
+
+This API-based approach reduces client-side computational requirements while maintaining real-time performance through optimized server-side inference.
+
+\subsection{AI-Powered Studio 3: Advanced Transformations}
+
+Beyond traditional virtual try-on, the system incorporates a real-time AI transformation suite powered by the DecartAI Realtime API. This module extends functionality beyond garment overlay to enable creative video editing and style transformation.
+
+\subsubsection{Multi-Mode Architecture}
+
+Studio 3 operates in three distinct modes, each utilizing specialized generative models:
+
+\begin{enumerate}
+    \item \textbf{Mirage v2 (Style Transformation)}: Transforms video streams with artistic styles through style transfer techniques. The model accepts natural language prompts describing desired visual aesthetics, enabling effects such as "anime style," "cyberpunk city," or "studio Ghibli animation."
+
+    \item \textbf{Lucy 2 (Video Editing)}: Enables object-level manipulation in real-time video. Users can add, modify, or remove objects through natural language commands such as "add a white T-shirt," "change shirt to white," or "remove jacket." This mode operates with top/bottom garment focus, making it ideal for clothing modifications.
+
+    \item \textbf{Avatar Live (Talking Avatars)}: Generates lifelike animated avatars from static portrait images synchronized with audio input. The model learns to map audio features to facial articulations, creating synchronized lip movements and expressive animations suitable for virtual presenters and interactive agents.
+\end{enumerate}
+
+\subsubsection{Real-Time Inference Framework}
+
+The DecartAI integration maintains WebSocket-based streaming connections for low-latency inference:
+
+\begin{equation}
+\hat{F}_t = f_{\text{DecartAI}}(F_t, P_t)
+\end{equation}
+
+where $P_t$ represents the user-provided prompt at time $t$, which can be dynamically updated during live sessions. The streaming architecture ensures frame-by-frame processing with minimal buffering, enabling interactive real-time feedback.
+
+\subsection{End-to-End Pipeline Formulation}
+
+The complete system can be viewed as a composition of modular functions:
+\begin{equation}
+\hat{F}_t = f_{\text{VTON}} \big( F_t,\; g^*,\; f_{\text{pose}}(F_t),\; f_{\text{seg}}(F_t) \big)
+\end{equation}
+
+This formulation highlights the decoupled nature of size inference and rendering, allowing each component to be independently improved or replaced.
+
+\subsection{Design Rationale}
+
+The proposed architecture avoids explicit 3D body reconstruction, camera calibration, or physics-based cloth simulation, which are computationally expensive and unstable in real-time settings. Instead, it leverages:
+\begin{itemize}
+    \item Learned priors from large-scale multimodal models (VLMs)
+    \item Cloud-based inference for heavy computation (API4AI, DecartAI)
+    \item Data-driven image synthesis through generative models
+\end{itemize}
+
+This hybrid approach strikes a balance between realism, robustness, and efficiency, making virtual try-on accessible through standard web browsers without requiring client-side GPU acceleration.
+
+\subsection{Configuration Management}
+
+The system implements a flexible API key management framework that allows runtime configuration of external service credentials. API keys for OpenRouter (size estimation), API4AI (virtual try-on), and DecartAI (Studio 3 transformations) can be configured through:
+\begin{itemize}
+    \item Environment variables for production deployments
+    \item JSON-based configuration file for persistent settings
+    \item Web-based settings interface for interactive configuration
+\end{itemize}
+
+This architecture enables seamless switching between service providers and facilitates deployment across different environments without code modifications.
+
+\section{Experiments}
+Experiments go here.
+
+\section{Conclusion}
+Conclusion goes here.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

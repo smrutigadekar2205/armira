@@ -64,7 +64,7 @@
     <!-- Navbar -->
     <nav class="navbar-modern">
         <a href="{{ url_for('index') }}" class="navbar-brand">
-            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="ARmira Logo" class="w-8 h-8">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ARmira Logo" class="w-8 h-8">
             <span class="text-xl font-extrabold tracking-tight text-white">AR<span class="text-indigo-500">mira</span></span>
         </a>
         
@@ -134,7 +134,7 @@
                     <textarea id="prompt-input" 
                               class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
                               rows="3"
-                              placeholder="Enter your prompt...">add a white T-shirt</textarea>
+                              placeholder="Enter your prompt...">The outfit combines a fitted white crew-neck T-shirt layered under a dark open button-up shirt with rolled sleeves.</textarea>
                     
                     <!-- Prompt Options -->
                     <div class="p-4 rounded-xl bg-white/5 border border-white/10 space-y-4">
@@ -366,7 +366,7 @@
                 model: models.realtime('lucy_v2v_720p_rt'),
                 name: 'Lucy 2',
                 description: 'Video Editing',
-                quickPrompts: ['add a white T-shirt', 'Change shirt to white', 'Add a blazer', 'Change to dress', 'Add a scarf', 'Change pants to jeans', 'Remove jacket', 'Add accessories']
+                quickPrompts: ['The outfit combines a fitted white crew-neck T-shirt layered under a dark open button-up shirt with rolled sleeves.', 'Change shirt to white', 'Add a blazer', 'Change to dress', 'Add a scarf', 'Change pants to jeans', 'Remove jacket', 'Add accessories']
             },
             avatar: {
                 model: models.realtime('live_avatar'),
