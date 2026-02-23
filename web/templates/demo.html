@@ -24,6 +24,35 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Positioning guide animations */
+        @keyframes pulse-guide {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes scan-vertical {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .scan-line-vertical {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(to bottom, transparent, #6366f1, #a855f7, transparent);
+            transform: translateX(-50%);
+            animation: scan-vertical 3s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        #positioning-guide .border-dashed {
+            animation: pulse-guide 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="hero-gradient min-h-screen">
@@ -79,32 +108,104 @@
                     {% endwith %}
 
                     <form action="{{ url_for('upload_user') }}" method="post" enctype="multipart/form-data" id="user-upload-form" onsubmit="showUserLoader()">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <div class="p-6 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-indigo-300 transition-all group relative">
-                                <input type="file" name="user_image" id="user_image" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
-                                <div class="text-center">
-                                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                        <i data-lucide="upload-cloud" class="text-slate-400"></i>
+                        <!-- Large Image Preview Section -->
+                        <div class="mb-8">
+                            <div class="relative rounded-3xl overflow-hidden bg-slate-900 min-h-[500px] flex items-center justify-center">
+                                <!-- Upload Area -->
+                                <div id="upload-area" class="absolute inset-0 flex flex-col items-center justify-center p-8 transition-opacity duration-300">
+                                    <div class="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mb-6 hover:scale-110 transition-transform">
+                                        <i data-lucide="upload-cloud" class="w-10 h-10 text-indigo-400"></i>
                                     </div>
-                                    <p class="font-semibold text-slate-700">Upload Image</p>
-                                    <p class="text-xs text-slate-400 mt-1">PNG, JPG up to 10MB</p>
+                                    <p class="text-white text-xl font-semibold mb-2">Upload Your Photo</p>
+                                    <p class="text-slate-400 text-sm mb-4">or use webcam for live capture</p>
+                                    <input type="file" name="user_image" id="user_image" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*">
+                                    <div class="flex gap-3">
+                                        <div class="px-4 py-2 bg-white/10 rounded-xl text-white text-xs">
+                                            <i data-lucide="image" class="w-4 h-4 inline mr-1"></i> PNG, JPG, WEBP
+                                        </div>
+                                        <div class="px-4 py-2 bg-white/10 rounded-xl text-white text-xs">
+                                            <i data-lucide="hard-drive" class="w-4 h-4 inline mr-1"></i> Max 10MB
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="p-6 rounded-3xl border border-slate-100 bg-white shadow-sm flex flex-col items-center justify-center text-center">
-                                <div id="webcam-container" class="hidden relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 mb-4">
+                                <!-- Image Preview -->
+                                <img id="image-preview" class="hidden w-full h-full object-contain" src="" alt="Preview">
+                                
+                                <!-- Webcam Container -->
+                                <div id="webcam-container" class="hidden absolute inset-0">
                                     <video id="video" class="w-full h-full object-cover" autoplay></video>
                                     <canvas id="canvas" class="hidden"></canvas>
-                                    <div id="scan-overlay" class="hidden absolute inset-0 pointer-events-none">
-                                        <div class="scan-line"></div>
-                                        <div class="absolute inset-0 border-2 border-indigo-500/30 rounded-2xl"></div>
+                                </div>
+
+                                <!-- Enhanced Positioning Guide Overlay -->
+                                <div id="positioning-guide" class="absolute inset-0 pointer-events-none hidden">
+                                    <!-- Background dimming -->
+                                    <div class="absolute inset-0 bg-black/40"></div>
+                                    
+                                    <!-- Main body guide frame -->
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <!-- Head guide -->
+                                        <div class="relative mb-4">
+                                            <div class="w-24 h-24 border-[3px] border-dashed border-indigo-400 rounded-full flex items-center justify-center animate-pulse">
+                                                <div class="w-20 h-20 border-2 border-indigo-300/50 rounded-full"></div>
+                                            </div>
+                                            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">HEAD</div>
+                                        </div>
+                                        
+                                        <!-- Body silhouette guide -->
+                                        <div class="relative w-40 h-72">
+                                            <!-- Left body line -->
+                                            <div class="absolute left-0 top-0 w-0.5 h-full bg-gradient-to-b from-indigo-400 via-indigo-500 to-indigo-400"></div>
+                                            <!-- Right body line -->
+                                            <div class="absolute right-0 top-0 w-0.5 h-full bg-gradient-to-b from-indigo-400 via-indigo-500 to-indigo-400"></div>
+                                            <!-- Shoulder line -->
+                                            <div class="absolute top-8 left-0 w-full h-1 bg-indigo-400/60"></div>
+                                            <!-- Chest line -->
+                                            <div class="absolute top-20 left-0 w-full h-0.5 bg-indigo-400/40"></div>
+                                            <!-- Waist line -->
+                                            <div class="absolute top-36 left-0 w-full h-0.5 bg-indigo-400/40"></div>
+                                            <!-- Hip line -->
+                                            <div class="absolute top-52 left-0 w-full h-0.5 bg-indigo-400/40"></div>
+                                            
+                                            <!-- Labels -->
+                                            <div class="absolute -right-12 top-8 text-indigo-300 text-[9px] font-bold -rotate-90 origin-left">SHOULDERS</div>
+                                            <div class="absolute -right-12 top-20 text-indigo-300/70 text-[9px] font-bold -rotate-90 origin-left">CHEST</div>
+                                            <div class="absolute -right-12 top-36 text-indigo-300/70 text-[9px] font-bold -rotate-90 origin-left">WAIST</div>
+                                            <div class="absolute -right-12 top-52 text-indigo-300/70 text-[9px] font-bold -rotate-90 origin-left">HIPS</div>
+                                        </div>
+                                        
+                                        <!-- Center alignment indicator -->
+                                        <div class="absolute left-1/2 top-0 -translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-transparent via-indigo-400/50 to-transparent"></div>
+                                    </div>
+                                    
+                                    <!-- Scan line animation -->
+                                    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                                        <div class="scan-line-vertical"></div>
+                                    </div>
+                                    
+                                    <!-- Instructions panel -->
+                                    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md rounded-2xl px-6 py-4 text-center max-w-md border border-indigo-500/30">
+                                        <div class="flex items-center justify-center gap-3 mb-2">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                            <p class="text-white text-sm font-semibold">Position Yourself</p>
+                                        </div>
+                                        <p class="text-indigo-200 text-xs">Stand centered with full body visible. Ensure good lighting for accurate measurements.</p>
                                     </div>
                                 </div>
-                                <button type="button" id="start-camera" class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 hover:bg-indigo-100 transition-colors">
-                                    <i data-lucide="camera"></i>
-                                </button>
-                                <p class="font-semibold text-slate-700">Use Webcam</p>
-                                <button type="button" id="capture-btn" class="hidden mt-4 text-xs font-bold text-indigo-600 uppercase tracking-widest hover:text-indigo-700">Capture Now</button>
+
+                                <!-- Webcam controls -->
+                                <div class="absolute bottom-4 right-4 flex gap-2">
+                                    <button type="button" id="start-camera" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+                                        <i data-lucide="camera" class="w-4 h-4"></i>
+                                        Start Camera
+                                    </button>
+                                    <button type="button" id="capture-btn" class="hidden px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+                                        <i data-lucide="aperture" class="w-4 h-4"></i>
+                                        Capture
+                                    </button>
+                                </div>
+                                
                                 <input type="hidden" name="webcam_image" id="webcam_image">
                             </div>
                         </div>
@@ -136,7 +237,10 @@
                         <div class="mt-10 flex items-center justify-between">
                             <div id="user-loader" class="hidden flex items-center gap-3">
                                 <div class="loader"></div>
-                                <span class="text-sm font-medium text-indigo-600">Analyzing body geometry...</span>
+                                <div class="text-left">
+                                    <span class="text-sm font-medium text-indigo-600 block">Analyzing body geometry...</span>
+                                    <span class="text-xs text-slate-400">Using advanced AI model for precise measurements</span>
+                                </div>
                             </div>
                             <button type="submit" id="user-submit-btn" class="btn-modern btn-primary w-full md:w-auto ml-auto">
                                 Next: Select Style
@@ -258,23 +362,53 @@
         const webcamContainer = document.getElementById('webcam-container');
         const webcamInput = document.getElementById('webcam_image');
         const fileInput = document.getElementById('user_image');
-        const scanOverlay = document.getElementById('scan-overlay');
+        const positioningGuide = document.getElementById('positioning-guide');
+        const uploadArea = document.getElementById('upload-area');
+        const imagePreview = document.getElementById('image-preview');
         const userForm = document.getElementById('user-upload-form');
 
+        // Handle file upload preview
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    uploadArea.classList.add('hidden');
+                    imagePreview.src = event.target.result;
+                    imagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Start camera
         startBtn.addEventListener('click', async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "user",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
                 video.srcObject = stream;
+                
+                // Hide upload area and start button, show webcam and capture button
+                uploadArea.classList.add('hidden');
+                imagePreview.classList.add('hidden');
+                startBtn.classList.add('hidden');
                 webcamContainer.classList.remove('hidden');
                 captureBtn.classList.remove('hidden');
-                scanOverlay.classList.remove('hidden');
-                startBtn.classList.add('hidden');
+                
+                // Show positioning guide
+                positioningGuide.classList.remove('hidden');
             } catch (err) {
                 console.error("Webcam error:", err);
                 alert("Please enable camera access.");
             }
         });
 
+        // Capture image
         captureBtn.addEventListener('click', () => {
             const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
@@ -284,8 +418,14 @@
             webcamInput.value = dataURL;
             
             video.pause();
-            scanOverlay.classList.add('hidden');
+            
+            // Hide positioning guide and webcam controls
+            positioningGuide.classList.add('hidden');
+            captureBtn.classList.add('hidden');
+            
+            // Show retake button
             captureBtn.textContent = 'Retake';
+            captureBtn.classList.remove('hidden');
             captureBtn.onclick = () => location.reload();
         });
 

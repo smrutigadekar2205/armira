@@ -23,11 +23,12 @@
             <a href="{{ url_for('index') }}" class="navbar-link">Home</a>
             <a href="{{ url_for('about') }}" class="navbar-link">About</a>
             <a href="{{ url_for('demo') }}" class="navbar-link">Studio</a>
-            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
-            <a href="{{ url_for('settings') }}" class="navbar-link active">Settings</a>
+            <a href="{{ url_for('studio2') }}" class="navbar-link">Studio 2 (AR)</a>
             {% if studio3_visible %}
             <a href="{{ url_for('studio3') }}" class="navbar-link">Studio 3 (AI)</a>
             {% endif %}
+            <a href="{{ url_for('wardrobe') }}" class="navbar-link">Wardrobe</a>
+            <a href="{{ url_for('settings') }}" class="navbar-link active">Settings</a>
         </div>
 
         <div class="ml-auto flex items-center gap-4">
